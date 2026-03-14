@@ -56,3 +56,11 @@ CREATE TABLE issues (
     status VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE shared_expenses (
+    id SERIAL PRIMARY KEY,
+    room_id INT REFERENCES rooms(id),
+    paid_by INT REFERENCES tenants(id),
+    expense_name VARCHAR(100),
+    amount INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
