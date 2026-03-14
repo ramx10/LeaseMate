@@ -5,6 +5,8 @@ const pool = require("./db");
 const authRoutes = require("./routes/authRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 const roomRoutes = require("./routes/roomRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
+const ledgerRoutes = require("./routes/ledgerRoutes");
 
 const app = express();
 
@@ -19,6 +21,12 @@ app.use("/api/properties", propertyRoutes);
 
 /* ROOM ROUTES */
 app.use("/api/rooms", roomRoutes);
+
+/* TENANTS ROUTES */
+app.use("/api/tenants", tenantRoutes);
+
+/* LEDGER ROUTES */
+app.use("/api/ledger", ledgerRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {
