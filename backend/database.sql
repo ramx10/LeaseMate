@@ -28,3 +28,13 @@ CREATE TABLE tenants (
     deposit INT,
     join_date DATE
 );
+CREATE TABLE rent_payments (
+    id SERIAL PRIMARY KEY,
+    tenant_id INT REFERENCES tenants(id),
+    month VARCHAR(20),
+    rent_amount INT,
+    electricity_amount INT,
+    total_amount INT,
+    status VARCHAR(20),
+    payment_date DATE
+);
