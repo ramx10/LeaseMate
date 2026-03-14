@@ -20,3 +20,11 @@ CREATE TABLE rooms (
     total_rent INT,
     max_tenants INT
 );
+CREATE TABLE tenants (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    room_id INT REFERENCES rooms(id),
+    phone VARCHAR(20),
+    deposit INT,
+    join_date DATE
+);
