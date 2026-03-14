@@ -3,6 +3,7 @@ const cors = require("cors");
 const pool = require("./db");
 
 const authRoutes = require("./routes/authRoutes");
+const propertyRoutes = require("./routes/propertyRoutes");
 
 const app = express();
 
@@ -11,6 +12,9 @@ app.use(express.json());
 
 /* AUTH ROUTES */
 app.use("/api/auth", authRoutes);
+
+/* PROPERTY ROUTES */
+app.use("/api/properties", propertyRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {
