@@ -38,3 +38,13 @@ CREATE TABLE rent_payments (
     status VARCHAR(20),
     payment_date DATE
 );
+CREATE TABLE electricity_bills (
+    id SERIAL PRIMARY KEY,
+    room_id INT REFERENCES rooms(id),
+    previous_reading INT,
+    current_reading INT,
+    unit_rate INT,
+    total_units INT,
+    total_amount INT,
+    bill_month VARCHAR(20)
+);
