@@ -4,6 +4,7 @@ const pool = require("./db");
 
 const authRoutes = require("./routes/authRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
+const roomRoutes = require("./routes/roomRoutes");
 
 const app = express();
 
@@ -15,6 +16,9 @@ app.use("/api/auth", authRoutes);
 
 /* PROPERTY ROUTES */
 app.use("/api/properties", propertyRoutes);
+
+/* ROOM ROUTES */
+app.use("/api/rooms", roomRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {
