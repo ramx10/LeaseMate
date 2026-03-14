@@ -2,15 +2,22 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
 
+const authRoutes = require("./routes/authRoutes");
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+/* AUTH ROUTES */
+app.use("/api/auth", authRoutes);
+
+/* HOME ROUTE */
 app.get("/", (req, res) => {
   res.send("LeaseMate Backend Running");
 });
 
+/* DATABASE TEST ROUTE */
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
