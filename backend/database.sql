@@ -48,3 +48,11 @@ CREATE TABLE electricity_bills (
     total_amount INT,
     bill_month VARCHAR(20)
 );
+CREATE TABLE issues (
+    id SERIAL PRIMARY KEY,
+    tenant_id INT REFERENCES tenants(id),
+    category VARCHAR(50),
+    description TEXT,
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
