@@ -13,3 +13,10 @@ CREATE TABLE properties (
     address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE rooms (
+    id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES properties(id),
+    room_number VARCHAR(20),
+    total_rent INT,
+    max_tenants INT
+);
