@@ -45,19 +45,5 @@ Frontend
 Mobile
 - Flutter
 
-##Database Architecture
-users
-   │
-   ├── properties
-   │      │
-   │      └── rooms
-   │            │
-   │            ├── tenants
-   │            │     └── rent_payments
-   │            │
-   │            ├── electricity_bills
-   │            │
-   │            └── shared_expenses
-   │
-   └── issues
+
 ## Project Structure
