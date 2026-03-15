@@ -74,3 +74,40 @@ exports.markPaid = async (req, res) => {
     res.status(500).send("Error updating payment");
   }
 };
+const pool = require("../db");
+
+exports.addLedger = async (req, res) => {
+  try {
+
+    const { tenant_id, month, electricity } = req.body;
+
+    /* Get room rent */
+    const room = await pool.query(`
+      SELECT rooms.total_rent, rooms.max_tenants
+      FROM tenants
+      JOIN rooms ON tenants.room_id = rooms.id
+      WHERE tenants.id = $1
+    `, [tenant_id]);
+
+    const totalRent = room.rows[0].total_rent;
+    const maxTenants = room.rows[0].max_tenants;
+
+    /* Split rent */
+    const rent = Math.floor(totalRent / maxTenants);
+
+    const total = rent + Number(electricity);
+
+    const ledger = await pool.query(`
+      INSERT INTO ledger
+      (tenant_id, month, rent, electricity, total)
+      VALUES ($1,$2,$3,$4,$5)
+      RETURNING *
+    `, [tenant_id, month, rent, electricity, total]);
+
+    res.json(ledger.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error adding ledger");
+  }
+};
