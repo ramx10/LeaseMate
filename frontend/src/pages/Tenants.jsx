@@ -8,20 +8,17 @@ export default function Tenants() {
   const [rooms, setRooms] = useState([]);
 
   const [roomId, setRoomId] = useState("");
-  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [deposit, setDeposit] = useState("");
 
   const fetchTenants = () => {
     axios.get("http://localhost:5000/api/tenants")
-      .then(res => setTenants(res.data))
-      .catch(err => console.log(err));
+      .then(res => setTenants(res.data));
   };
 
   const fetchRooms = () => {
     axios.get("http://localhost:5000/api/rooms")
-      .then(res => setRooms(res.data))
-      .catch(err => console.log(err));
+      .then(res => setRooms(res.data));
   };
 
   useEffect(() => {
@@ -31,16 +28,14 @@ export default function Tenants() {
 
   const addTenant = async () => {
 
-    if (!roomId || !name || !phone || !deposit) return;
+    if (!roomId || !phone || !deposit) return;
 
     await axios.post("http://localhost:5000/api/tenants/add", {
       room_id: roomId,
-      name,
       phone,
       deposit
     });
 
-    setName("");
     setPhone("");
     setDeposit("");
 
@@ -59,7 +54,6 @@ export default function Tenants() {
 
       <h1 className="text-2xl font-bold mb-6">Tenants</h1>
 
-      {/* Add Tenant */}
       <div className="bg-white p-4 rounded shadow mb-6 flex gap-4">
 
         <select
@@ -77,13 +71,6 @@ export default function Tenants() {
           ))}
 
         </select>
-
-        <input
-          className="border p-2 rounded"
-          placeholder="Tenant Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
 
         <input
           className="border p-2 rounded"
@@ -108,53 +95,47 @@ export default function Tenants() {
 
       </div>
 
-      {/* Tenant Table */}
+      <table className="w-full bg-white shadow rounded">
 
-      <div className="bg-white rounded shadow overflow-hidden">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-3">ID</th>
+            <th className="p-3">Property</th>
+            <th className="p-3">Room</th>
+            <th className="p-3">Phone</th>
+            <th className="p-3">Deposit</th>
+            <th className="p-3">Action</th>
+          </tr>
+        </thead>
 
-        <table className="w-full">
+        <tbody>
 
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 text-left">ID</th>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Phone</th>
-              <th className="p-3 text-left">Deposit</th>
-              <th className="p-3 text-left">Actions</th>
+          {tenants.map((t) => (
+            <tr key={t.id} className="border-t">
+
+              <td className="p-3">{t.id}</td>
+              <td className="p-3">{t.property_name}</td>
+              <td className="p-3">{t.room_number}</td>
+              <td className="p-3">{t.phone}</td>
+              <td className="p-3">₹ {t.deposit}</td>
+
+              <td className="p-3">
+
+                <button
+                  onClick={() => deleteTenant(t.id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded"
+                >
+                  Delete
+                </button>
+
+              </td>
+
             </tr>
-          </thead>
+          ))}
 
-          <tbody>
+        </tbody>
 
-            {tenants.map((tenant) => (
-
-              <tr key={tenant.id} className="border-t">
-
-                <td className="p-3">{tenant.id}</td>
-                <td className="p-3">{tenant.name}</td>
-                <td className="p-3">{tenant.phone}</td>
-                <td className="p-3">₹ {tenant.deposit}</td>
-
-                <td className="p-3">
-
-                  <button
-                    onClick={() => deleteTenant(tenant.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
+      </table>
 
     </MainLayout>
   );
