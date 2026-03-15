@@ -1,0 +1,3 @@
+post man for api 
+pgAdmin4 for data base
+visual studio
