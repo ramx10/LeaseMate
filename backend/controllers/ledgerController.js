@@ -74,7 +74,6 @@ exports.markPaid = async (req, res) => {
     res.status(500).send("Error updating payment");
   }
 };
-const pool = require("../db");
 
 exports.addLedger = async (req, res) => {
   try {

@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { getDashboardStats } = require("../controllers/dashboardController");
+const dashboardController = require("../controllers/dashboardController");
 
-router.get("/", getDashboardStats);
+router.get("/stats", dashboardController.getDashboardStats);
+router.get("/rent-analytics", dashboardController.getRentAnalytics);
+router.get("/payment-analytics", dashboardController.getPaymentAnalytics);
 
 module.exports = router;

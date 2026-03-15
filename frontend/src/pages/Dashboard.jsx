@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
 import StatsCard from "../components/StatsCard";
+import RentChart from "../components/RentChart";
+import PaymentChart from "../components/PaymentChart";
 
 export default function Dashboard() {
 
@@ -42,6 +44,12 @@ export default function Dashboard() {
         />
 
       </div>
+      <div className="grid grid-cols-2 gap-6 mt-8">
+
+ <RentChart />
+ <PaymentChart />
+
+</div>
 
     </MainLayout>
 
