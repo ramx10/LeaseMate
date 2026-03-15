@@ -136,7 +136,7 @@ export default function Rooms() {
 
                   <td className="p-3">{room.room_number}</td>
 
-                  <td className="p-3">₹ {room.rent}</td>
+                  <td className="p-3">{room.max_tenants}</td>
 
                   <td className="p-3">
 

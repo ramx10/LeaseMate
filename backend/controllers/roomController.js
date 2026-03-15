@@ -17,11 +17,26 @@ exports.addRoom = async (req, res) => {
   }
 };
 
-/* GET ROOMS */
+/* GET ROOMS WITH PROPERTY NAME */
 exports.getRooms = async (req, res) => {
   try {
-    const rooms = await pool.query("SELECT * FROM rooms");
+
+    const rooms = await pool.query(`
+      SELECT
+        rooms.id,
+        rooms.room_number,
+        rooms.total_rent,
+        rooms.max_tenants,
+        rooms.property_id,
+        properties.property_name
+      FROM rooms
+      JOIN properties
+      ON rooms.property_id = properties.id
+      ORDER BY rooms.id
+    `);
+
     res.json(rooms.rows);
+
   } catch (error) {
     console.error(error);
     res.status(500).send("Error fetching rooms");
