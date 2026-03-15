@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
+import Properties from "./pages/Properties";
 
 export default function App() {
 
@@ -9,6 +10,7 @@ export default function App() {
       <Routes>
 
         <Route path="/" element={<Dashboard />} />
+        <Route path="/properties" element={<Properties />} />
 
       </Routes>
 
