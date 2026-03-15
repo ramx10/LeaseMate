@@ -3,12 +3,12 @@ const pool = require("../db");
 /* ADD PROPERTY */
 exports.addProperty = async (req, res) => {
   try {
-    const { owner_id, property_name, address } = req.body;
+    const { property_name, address } = req.body;
 
     const newProperty = await pool.query(
-      "INSERT INTO properties (owner_id, property_name, address) VALUES ($1,$2,$3) RETURNING *",
-      [owner_id, property_name, address]
-    );
+  "INSERT INTO properties (property_name, address) VALUES ($1,$2) RETURNING *",
+  [property_name, address]
+);
 
     res.json(newProperty.rows[0]);
   } catch (error) {

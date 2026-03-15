@@ -5,12 +5,18 @@ import MainLayout from "../layout/MainLayout";
 export default function Properties() {
 
   const [properties, setProperties] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [search, setSearch] = useState("");
 
   const fetchProperties = () => {
     axios.get("http://localhost:5000/api/properties")
-      .then(res => setProperties(res.data))
+      .then(res => {
+        setProperties(res.data);
+        setFiltered(res.data);
+      })
       .catch(err => console.log(err));
   };
 
@@ -18,20 +24,32 @@ export default function Properties() {
     fetchProperties();
   }, []);
 
+  // SEARCH
+  useEffect(() => {
+
+  const result = properties.filter((p) =>
+    (p.property_name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  setFiltered(result);
+
+}, [search, properties]);
+
   const addProperty = async () => {
-    try {
-      await axios.post("http://localhost:5000/api/properties/add", {
-        name,
-        address
-      });
 
-      setName("");
-      setAddress("");
-      fetchProperties();
+    if (!name || !address) return;
 
-    } catch (err) {
-      console.log(err);
-    }
+   await axios.post("http://localhost:5000/api/properties/add", {
+  property_name: name,
+  address
+});
+
+    setName("");
+    setAddress("");
+
+    fetchProperties();
   };
 
   const deleteProperty = async (id) => {
@@ -42,68 +60,92 @@ export default function Properties() {
   return (
     <MainLayout>
 
-      <h1 className="text-2xl font-bold mb-6">Properties</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Properties
+      </h1>
 
-      <div className="flex gap-4 mb-6">
+      {/* Add Property */}
+      <div className="bg-white p-4 rounded shadow mb-6 flex gap-4">
 
         <input
-          className="border p-2 rounded"
+          className="border p-2 rounded w-1/3"
           placeholder="Property Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <input
-          className="border p-2 rounded"
+          className="border p-2 rounded w-1/3"
           placeholder="Address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
 
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
           onClick={addProperty}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           Add Property
         </button>
 
       </div>
 
-      <table className="w-full bg-white shadow rounded">
+      {/* Search */}
+      <div className="mb-4">
 
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-3">ID</th>
-            <th className="p-3">Name</th>
-            <th className="p-3">Address</th>
-            <th className="p-3">Actions</th>
-          </tr>
-        </thead>
+        <input
+          className="border p-2 rounded w-1/3"
+          placeholder="Search property..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-        <tbody>
+      </div>
 
-          {properties.map((p) => (
-            <tr key={p.id} className="border-t">
+      {/* Table */}
+      <div className="bg-white rounded shadow overflow-hidden">
 
-              <td className="p-3">{p.id}</td>
-              <td className="p-3">{p.name}</td>
-              <td className="p-3">{p.address}</td>
+        <table className="w-full">
 
-              <td className="p-3">
-                <button
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                  onClick={() => deleteProperty(p.id)}
-                >
-                  Delete
-                </button>
-              </td>
-
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 text-left">ID</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Address</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
-          ))}
+          </thead>
 
-        </tbody>
+          <tbody>
 
-      </table>
+            {filtered.map((p) => (
+
+              <tr key={p.id} className="border-t hover:bg-gray-50">
+
+                <td className="p-3">{p.id}</td>
+                <td className="p-3">{p.property_name}</td>
+                <td className="p-3">{p.address}</td>
+
+                <td className="p-3">
+
+                  <button
+                    onClick={() => deleteProperty(p.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
 
     </MainLayout>
   );
