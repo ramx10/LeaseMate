@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import API from "../services/api";
+import axios from "axios";
+import MainLayout from "../layout/MainLayout";
+import StatsCard from "../components/StatsCard";
 
 export default function Dashboard() {
 
@@ -7,45 +9,41 @@ export default function Dashboard() {
 
   useEffect(() => {
 
-    API.get("/dashboard")
-      .then(res => {
-        setStats(res.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    axios.get("http://localhost:5000/api/dashboard")
+      .then(res => setStats(res.data))
+      .catch(err => console.log(err));
 
   }, []);
 
   return (
-    <div style={{padding:"20px"}}>
 
-      <h1>LeaseMate Dashboard</h1>
+    <MainLayout>
 
-      <div style={{display:"flex", gap:"20px"}}>
+      <div className="grid grid-cols-4 gap-6">
 
-        <div>
-          <h3>Total Tenants</h3>
-          <p>{stats.totalTenants}</p>
-        </div>
+        <StatsCard
+          title="Total Tenants"
+          value={stats.totalTenants}
+        />
 
-        <div>
-          <h3>Total Properties</h3>
-          <p>{stats.totalProperties}</p>
-        </div>
+        <StatsCard
+          title="Total Properties"
+          value={stats.totalProperties}
+        />
 
-        <div>
-          <h3>Total Rooms</h3>
-          <p>{stats.totalRooms}</p>
-        </div>
+        <StatsCard
+          title="Total Rooms"
+          value={stats.totalRooms}
+        />
 
-        <div>
-          <h3>Pending Rent</h3>
-          <p>₹{stats.pendingRent}</p>
-        </div>
+        <StatsCard
+          title="Pending Rent"
+          value={"₹ " + stats.pendingRent}
+        />
 
       </div>
 
-    </div>
+    </MainLayout>
+
   );
 }
