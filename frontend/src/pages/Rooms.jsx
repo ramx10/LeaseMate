@@ -138,6 +138,8 @@ export default function Rooms() {
 
                   <td className="p-3">{room.max_tenants}</td>
 
+                  <td className="p-3">₹ {room.total_rent}</td>
+
                   <td className="p-3">
 
                     <button

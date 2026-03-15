@@ -46,11 +46,23 @@ exports.getRooms = async (req, res) => {
 /* DELETE ROOM */
 exports.deleteRoom = async (req, res) => {
   try {
+
     const { id } = req.params;
 
-    await pool.query("DELETE FROM rooms WHERE id=$1", [id]);
+    // Remove tenants first
+    await pool.query(
+      "DELETE FROM tenants WHERE room_id=$1",
+      [id]
+    );
+
+    // Then delete room
+    await pool.query(
+      "DELETE FROM rooms WHERE id=$1",
+      [id]
+    );
 
     res.json("Room deleted");
+
   } catch (error) {
     console.error(error);
     res.status(500).send("Error deleting room");

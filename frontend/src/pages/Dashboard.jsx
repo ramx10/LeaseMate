@@ -40,7 +40,7 @@ export default function Dashboard() {
 
         <StatsCard
           title="Pending Rent"
-          value={"₹ " + stats.pendingRent}
+          value={"₹ " + (stats.pending_rent || 0)}
         />
 
       </div>

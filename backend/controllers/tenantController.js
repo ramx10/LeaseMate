@@ -51,6 +51,13 @@ exports.deleteTenant = async (req, res) => {
 
     const { id } = req.params;
 
+    // delete ledger records
+    await pool.query(
+      "DELETE FROM ledger WHERE tenant_id=$1",
+      [id]
+    );
+
+    // delete tenant
     await pool.query(
       "DELETE FROM tenants WHERE id=$1",
       [id]

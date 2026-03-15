@@ -32,11 +32,23 @@ exports.getProperties = async (req, res) => {
 /* DELETE PROPERTY */
 exports.deleteProperty = async (req, res) => {
   try {
+
     const { id } = req.params;
 
-    await pool.query("DELETE FROM properties WHERE id=$1", [id]);
+    // delete rooms under this property
+    await pool.query(
+      "DELETE FROM rooms WHERE property_id = $1",
+      [id]
+    );
+
+    // delete the property
+    await pool.query(
+      "DELETE FROM properties WHERE id = $1",
+      [id]
+    );
 
     res.json("Property deleted");
+
   } catch (error) {
     console.error(error);
     res.status(500).send("Error deleting property");

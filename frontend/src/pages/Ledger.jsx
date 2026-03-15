@@ -29,18 +29,22 @@ export default function Ledger() {
   }, []);
 
   const addLedger = async () => {
+  try {
+
+    if (!tenantId || !month || !units) return;
 
     await axios.post("http://localhost:5000/api/ledger/add", {
       tenant_id: tenantId,
-      month,
-      rent,
-      electricity_units: units,
-      unit_rate: rate
+      month: month,
+      electricity: units
     });
 
     fetchLedger();
-  };
 
+  } catch (error) {
+    console.log(error);
+  }
+};
   const markPaid = async (id) => {
 
     await axios.put(`http://localhost:5000/api/ledger/paid/${id}`);
@@ -55,56 +59,41 @@ export default function Ledger() {
 
       {/* Add Entry */}
 
-      <div className="bg-white p-4 rounded shadow mb-6 flex gap-4">
+      <div className="bg-white p-4 rounded shadow mb-6 flex gap-4 items-center">
 
-        <select
-          className="border p-2"
-          value={tenantId}
-          onChange={(e) => setTenantId(e.target.value)}
-        >
+  <select
+    className="border p-2 rounded w-48"
+    value={tenantId}
+    onChange={(e) => setTenantId(e.target.value)}
+  >
+    <option value="">Select Tenant</option>
+    {tenants.map((t) => (
+      <option key={t.id} value={t.id}>
+        Room {t.room_number}
+      </option>
+    ))}
+  </select>
 
-          <option value="">Select Tenant</option>
+  <input
+    className="border p-2 rounded w-40"
+    placeholder="Month"
+    onChange={(e) => setMonth(e.target.value)}
+  />
 
-          {tenants.map((t) => (
-            <option key={t.id} value={t.id}>
-              Room {t.room_number}
-            </option>
-          ))}
+  <input
+    className="border p-2 rounded w-40"
+    placeholder="Electricity"
+    onChange={(e) => setUnits(e.target.value)}
+  />
 
-        </select>
+  <button
+    onClick={addLedger}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Add
+  </button>
 
-        <input
-          placeholder="Month"
-          className="border p-2"
-          onChange={(e) => setMonth(e.target.value)}
-        />
-
-        <input
-          placeholder="Rent"
-          className="border p-2"
-          onChange={(e) => setRent(e.target.value)}
-        />
-
-        <input
-          placeholder="Units"
-          className="border p-2"
-          onChange={(e) => setUnits(e.target.value)}
-        />
-
-        <input
-          placeholder="Unit Rate"
-          className="border p-2"
-          onChange={(e) => setRate(e.target.value)}
-        />
-
-        <button
-          onClick={addLedger}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add
-        </button>
-
-      </div>
+</div>
 
       {/* Ledger Table */}
 
