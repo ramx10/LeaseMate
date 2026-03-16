@@ -40,19 +40,28 @@ export default function Tenants() {
   }, []);
 
   const addTenant = async () => {
-    if (!userId || !roomId || !phone || !deposit) return;
-    await axios.post("http://localhost:5000/api/tenants/add", {
-      user_id: userId,
-      room_id: roomId,
-      phone,
-      deposit,
-    });
-    setUserId("");
-    setRoomId("");
-    setPhone("");
-    setDeposit("");
-    fetchTenants();
-    fetchUnassignedUsers(); // refresh the dropdown
+    if (!userId || !roomId || !phone || !deposit) {
+      alert("Please fill all fields");
+      return;
+    }
+    
+    try {
+      await axios.post("http://localhost:5000/api/tenants/add", {
+        user_id: userId,
+        room_id: roomId,
+        phone,
+        deposit,
+      });
+      setUserId("");
+      setRoomId("");
+      setPhone("");
+      setDeposit("");
+      fetchTenants();
+      fetchUnassignedUsers(); // refresh the dropdown
+    } catch (err) {
+      alert(err.response?.data || "Failed to add tenant");
+      console.log(err);
+    }
   };
 
   const deleteTenant = async (id) => {
