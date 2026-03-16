@@ -32,9 +32,12 @@ export default function Ledger() {
   const addLedger = async () => {
     try {
       if (!tenantId || !month || !units) return;
+      // Format month from '2026-03' to 'March 2026'
+      const [year, mon] = month.split("-");
+      const formattedMonth = new Date(year, mon - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
       await axios.post("http://localhost:5000/api/ledger/add", {
         tenant_id: tenantId,
-        month: month,
+        month: formattedMonth,
         electricity: units,
       });
       setMonth("");
@@ -87,7 +90,7 @@ export default function Ledger() {
           </select>
           <input
             className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            placeholder="Month (e.g. March 2025)"
+            type="month"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
           />
