@@ -8,6 +8,7 @@ const roomRoutes = require("./routes/roomRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
 const ledgerRoutes = require("./routes/ledgerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const tenantDashboardRoutes = require("./routes/tenantDashboardRoutes");
 
 const app = express();
 
@@ -31,6 +32,9 @@ app.use("/api/ledger", ledgerRoutes);
 
 /* DASHBOARD ROUTES */
 app.use("/api/dashboard", dashboardRoutes);
+
+/* TENANT DASHBOARD ROUTES */
+app.use("/api/tenant-dashboard", tenantDashboardRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {
