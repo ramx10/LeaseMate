@@ -1,4 +1,15 @@
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 export default function Navbar({ title = "Dashboard" }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <div
       className="px-6 py-4 flex items-center justify-between"
@@ -16,17 +27,24 @@ export default function Navbar({ title = "Dashboard" }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <div className="text-right">
-          <p className="text-gray-700 text-sm font-semibold">Owner</p>
-          <p className="text-gray-400 text-xs">Administrator</p>
+          <p className="text-gray-700 text-sm font-semibold">{user?.name || "User"}</p>
+          <p className="text-gray-400 text-xs">{user?.role === "Tenant" ? "Tenant" : "Administrator"}</p>
         </div>
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer transition-transform hover:scale-105 uppercase"
           style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)" }}
         >
-          O
+          {user?.name?.[0] || (user?.role === "Tenant" ? "T" : "O")}
         </div>
+        
+        <button
+          onClick={handleLogout}
+          className="ml-2 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
