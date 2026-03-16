@@ -3,7 +3,6 @@ import axios from "axios";
 import MainLayout from "../layout/MainLayout";
 
 export default function Tenants() {
-
   const [tenants, setTenants] = useState([]);
   const [rooms, setRooms] = useState([]);
 
@@ -12,13 +11,17 @@ export default function Tenants() {
   const [deposit, setDeposit] = useState("");
 
   const fetchTenants = () => {
-    axios.get("http://localhost:5000/api/tenants")
-      .then(res => setTenants(res.data));
+    axios
+      .get("http://localhost:5000/api/tenants")
+      .then((res) => setTenants(res.data))
+      .catch((err) => console.log(err));
   };
 
   const fetchRooms = () => {
-    axios.get("http://localhost:5000/api/rooms")
-      .then(res => setRooms(res.data));
+    axios
+      .get("http://localhost:5000/api/rooms")
+      .then((res) => setRooms(res.data))
+      .catch((err) => console.log(err));
   };
 
   useEffect(() => {
@@ -27,116 +30,119 @@ export default function Tenants() {
   }, []);
 
   const addTenant = async () => {
-
     if (!roomId || !phone || !deposit) return;
-
     await axios.post("http://localhost:5000/api/tenants/add", {
       room_id: roomId,
       phone,
-      deposit
+      deposit,
     });
-
     setPhone("");
     setDeposit("");
-
     fetchTenants();
   };
 
   const deleteTenant = async (id) => {
-
+    if (!window.confirm("Delete this tenant? Their ledger records will also be removed.")) return;
     await axios.delete(`http://localhost:5000/api/tenants/${id}`);
-
     fetchTenants();
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Tenants">
 
-      <h1 className="text-2xl font-bold mb-6">Tenants</h1>
-
-      <div className="bg-white p-4 rounded shadow mb-6 flex gap-4">
-
-        <select
-          className="border p-2 rounded"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-        >
-
-          <option value="">Select Room</option>
-
-          {rooms.map((room) => (
-            <option key={room.id} value={room.id}>
-              Room {room.room_number}
-            </option>
-          ))}
-
-        </select>
-
-        <input
-          className="border p-2 rounded"
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-
-        <input
-          className="border p-2 rounded"
-          placeholder="Deposit"
-          value={deposit}
-          onChange={(e) => setDeposit(e.target.value)}
-        />
-
-        <button
-          onClick={addTenant}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add Tenant
-        </button>
-
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">👤 Tenants</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Manage tenants across all rooms</p>
+        </div>
+        <div className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+          {tenants.length} tenant{tenants.length !== 1 ? "s" : ""}
+        </div>
       </div>
 
-      <table className="w-full bg-white shadow rounded">
+      {/* Add Tenant */}
+      <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
+        <h2 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Add New Tenant</h2>
+        <div className="flex flex-wrap gap-3">
+          <select
+            className="flex-1 min-w-40 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          >
+            <option value="">Select Room</option>
+            {rooms.map((room) => (
+              <option key={room.id} value={room.id}>
+                Room {room.room_number} — {room.property_name || ""}
+              </option>
+            ))}
+          </select>
+          <input
+            className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            placeholder="Phone Number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <input
+            className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            placeholder="Security Deposit (₹)"
+            type="number"
+            value={deposit}
+            onChange={(e) => setDeposit(e.target.value)}
+          />
+          <button
+            onClick={addTenant}
+            className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-95"
+            style={{ background: "linear-gradient(135deg, #6366f1, #818cf8)" }}
+          >
+            + Add Tenant
+          </button>
+        </div>
+      </div>
 
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-3">ID</th>
-            <th className="p-3">Property</th>
-            <th className="p-3">Room</th>
-            <th className="p-3">Phone</th>
-            <th className="p-3">Deposit</th>
-            <th className="p-3">Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          {tenants.map((t) => (
-            <tr key={t.id} className="border-t">
-
-              <td className="p-3">{t.id}</td>
-              <td className="p-3">{t.property_name}</td>
-              <td className="p-3">{t.room_number}</td>
-              <td className="p-3">{t.phone}</td>
-              <td className="p-3">₹ {t.deposit}</td>
-
-              <td className="p-3">
-
-                <button
-                  onClick={() => deleteTenant(t.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Delete
-                </button>
-
-              </td>
-
+      {/* Tenants Table */}
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
+        <table className="w-full">
+          <thead>
+            <tr style={{ background: "linear-gradient(135deg, #6366f1, #818cf8)" }}>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">#</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Property</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Room</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Phone</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Deposit</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Actions</th>
             </tr>
-          ))}
-
-        </tbody>
-
-      </table>
-
+          </thead>
+          <tbody>
+            {tenants.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-gray-400 text-sm">No tenants found</td>
+              </tr>
+            ) : (
+              tenants.map((t, i) => (
+                <tr
+                  key={t.id}
+                  className={`border-t border-gray-50 hover:bg-indigo-50/50 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                >
+                  <td className="px-5 py-3.5 text-gray-400 text-sm">{t.id}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm">{t.property_name}</td>
+                  <td className="px-5 py-3.5 font-semibold text-gray-700 text-sm">{t.room_number}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm">{t.phone}</td>
+                  <td className="px-5 py-3.5 font-semibold text-gray-800 text-sm">₹ {t.deposit}</td>
+                  <td className="px-5 py-3.5">
+                    <button
+                      onClick={() => deleteTenant(t.id)}
+                      className="text-xs px-3 py-1.5 rounded-lg text-red-600 font-medium bg-red-50 hover:bg-red-100 transition-colors"
+                    >
+                      🗑 Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </MainLayout>
   );
 }

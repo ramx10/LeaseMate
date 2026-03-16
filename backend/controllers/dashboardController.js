@@ -34,3 +34,36 @@ exports.getDashboard = async (req, res) => {
     res.status(500).send("Error fetching dashboard");
   }
 };
+
+
+/* RENT ANALYTICS — monthly rent collection */
+exports.getRentAnalytics = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT month, SUM(total) AS total_rent
+      FROM ledger
+      GROUP BY month
+      ORDER BY MIN(id)
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching rent analytics");
+  }
+};
+
+
+/* PAYMENT ANALYTICS — paid vs pending count */
+exports.getPaymentAnalytics = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT paid, COUNT(*) AS count
+      FROM ledger
+      GROUP BY paid
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching payment analytics");
+  }
+};
