@@ -81,7 +81,7 @@ export default function TenantDashboard() {
         />
         <StatsCard
           title="Current Rent Bill"
-          value={"₹ " + (data.rentBreakdown ? data.rentBreakdown.total_amount : 0)}
+          value={"₹ " + (data.rentBreakdown && data.rentBreakdown.status !== "Paid" ? data.rentBreakdown.total_amount : 0)}
           icon="📜"
           gradient="linear-gradient(135deg, #f59e0b, #fbbf24)"
         />
