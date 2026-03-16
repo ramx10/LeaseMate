@@ -8,9 +8,9 @@ exports.addTenant = async (req, res) => {
 
     const owner_id = req.user.id;
 
-    // Verify room belongs to owner
+    // Verify room belongs to owner and get its capacity
     const roomCheck = await pool.query(`
-      SELECT rooms.id 
+      SELECT rooms.id, rooms.max_tenants 
       FROM rooms 
       JOIN properties ON rooms.property_id = properties.id 
       WHERE rooms.id = $1 AND properties.owner_id = $2
@@ -18,6 +18,21 @@ exports.addTenant = async (req, res) => {
     
     if (roomCheck.rows.length === 0) {
       return res.status(403).json("Unauthorized. Room does not belong to you.");
+    }
+
+    const maxCapacity = roomCheck.rows[0].max_tenants;
+
+    // Check current occupancy
+    const occupantCheck = await pool.query(`
+      SELECT COUNT(*) as current_occupants 
+      FROM tenants 
+      WHERE room_id = $1
+    `, [room_id]);
+
+    const currentOccupants = parseInt(occupantCheck.rows[0].current_occupants, 10);
+
+    if (currentOccupants >= maxCapacity) {
+      return res.status(400).json(`Room is full. Maximum capacity is ${maxCapacity} tenants.`);
     }
 
     const newTenant = await pool.query(
