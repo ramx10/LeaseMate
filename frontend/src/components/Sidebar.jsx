@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const navItems = [
+const ownerNavItems = [
   { to: "/", label: "Dashboard", icon: "📊" },
   { to: "/properties", label: "Properties", icon: "🏠" },
   { to: "/rooms", label: "Rooms", icon: "🚪" },
@@ -8,8 +9,15 @@ const navItems = [
   { to: "/ledger", label: "Ledger", icon: "📒" },
 ];
 
+const tenantNavItems = [
+  { to: "/tenant-dashboard", label: "Dashboard", icon: "📊" },
+];
+
 export default function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const navItems = user?.role === "Tenant" ? tenantNavItems : ownerNavItems;
 
   return (
     <div className="w-64 min-h-screen flex flex-col"
@@ -63,13 +71,13 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="px-6 py-5 border-t border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase"
             style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)" }}>
-            O
+            {user?.name?.[0] || (user?.role === "Tenant" ? "T" : "O")}
           </div>
-          <div>
-            <p className="text-white text-sm font-medium">Owner</p>
-            <p className="text-indigo-400 text-xs">Admin Panel</p>
+          <div className="overflow-hidden">
+            <p className="text-white text-sm font-medium truncate">{user?.name || "User"}</p>
+            <p className="text-indigo-400 text-xs">{user?.role === "Tenant" ? "Tenant" : "Admin Panel"}</p>
           </div>
         </div>
       </div>
