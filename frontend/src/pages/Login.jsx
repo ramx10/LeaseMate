@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -8,6 +9,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,9 +24,14 @@ export default function Login() {
         email,
         password,
       });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/");
+      login(res.data.user, res.data.token);
+      
+      // Redirect based on role
+      if (res.data.user.role === "Tenant") {
+        navigate("/tenant-dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setError(err.response?.data || "Login failed. Please try again.");
     } finally {
