@@ -9,6 +9,7 @@ const tenantRoutes = require("./routes/tenantRoutes");
 const ledgerRoutes = require("./routes/ledgerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const tenantDashboardRoutes = require("./routes/tenantDashboardRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -35,6 +36,9 @@ app.use("/api/dashboard", dashboardRoutes);
 
 /* TENANT DASHBOARD ROUTES */
 app.use("/api/tenant-dashboard", tenantDashboardRoutes);
+
+/* USER ROUTES */
+app.use("/api/users", userRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {

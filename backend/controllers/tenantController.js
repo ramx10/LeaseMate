@@ -4,11 +4,11 @@ const pool = require("../db");
 exports.addTenant = async (req, res) => {
   try {
 
-    const { room_id, phone, deposit } = req.body;
+    const { user_id, room_id, phone, deposit } = req.body;
 
     const newTenant = await pool.query(
-      "INSERT INTO tenants (room_id, phone, deposit) VALUES ($1,$2,$3) RETURNING *",
-      [room_id, phone, deposit]
+      "INSERT INTO tenants (user_id, room_id, phone, deposit, join_date) VALUES ($1,$2,$3,$4, CURRENT_DATE) RETURNING *",
+      [user_id, room_id, phone, deposit]
     );
 
     res.json(newTenant.rows[0]);
@@ -26,6 +26,8 @@ exports.getTenants = async (req, res) => {
     const tenants = await pool.query(`
       SELECT
         tenants.id,
+        users.name AS tenant_name,
+        users.email AS tenant_email,
         tenants.phone,
         tenants.deposit,
         tenants.join_date,
@@ -34,6 +36,7 @@ exports.getTenants = async (req, res) => {
       FROM tenants
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
+      LEFT JOIN users ON tenants.user_id = users.id
       ORDER BY tenants.id
     `);
 
