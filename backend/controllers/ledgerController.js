@@ -6,16 +6,19 @@ exports.addLedger = async (req, res) => {
 
     const { tenant_id, month, electricity } = req.body;
 
-    // get room info
+    const owner_id = req.user.id;
+
+    // get room info and verify ownership
     const room = await pool.query(`
       SELECT rooms.total_rent, rooms.max_tenants
       FROM tenants
       JOIN rooms ON tenants.room_id = rooms.id
-      WHERE tenants.id = $1
-    `, [tenant_id]);
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE tenants.id = $1 AND properties.owner_id = $2
+    `, [tenant_id, owner_id]);
 
     if (room.rows.length === 0) {
-      return res.status(404).send("Tenant not found");
+      return res.status(404).send("Tenant not found or unauthorized");
     }
 
     const totalRent = Number(room.rows[0].total_rent);
@@ -47,6 +50,8 @@ exports.addLedger = async (req, res) => {
 exports.getLedger = async (req, res) => {
   try {
 
+    const owner_id = req.user.id;
+
     const ledger = await pool.query(`
       SELECT
         ledger.id,
@@ -62,8 +67,9 @@ exports.getLedger = async (req, res) => {
       JOIN tenants ON ledger.tenant_id = tenants.id
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
+      WHERE properties.owner_id = $1
       ORDER BY ledger.id
-    `);
+    `, [owner_id]);
 
     res.json(ledger.rows);
 
@@ -79,6 +85,21 @@ exports.markPaid = async (req, res) => {
   try {
 
     const { id } = req.params;
+    const owner_id = req.user.id;
+
+    // Verify ownership
+    const ledgerCheck = await pool.query(`
+      SELECT ledger.id
+      FROM ledger
+      JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE ledger.id = $1 AND properties.owner_id = $2
+    `, [id, owner_id]);
+
+    if (ledgerCheck.rows.length === 0) {
+      return res.status(403).json("Unauthorized or not found");
+    }
 
     await pool.query(
       "UPDATE ledger SET paid=true WHERE id=$1",

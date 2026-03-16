@@ -6,6 +6,20 @@ exports.addTenant = async (req, res) => {
 
     const { user_id, room_id, phone, deposit } = req.body;
 
+    const owner_id = req.user.id;
+
+    // Verify room belongs to owner
+    const roomCheck = await pool.query(`
+      SELECT rooms.id 
+      FROM rooms 
+      JOIN properties ON rooms.property_id = properties.id 
+      WHERE rooms.id = $1 AND properties.owner_id = $2
+    `, [room_id, owner_id]);
+    
+    if (roomCheck.rows.length === 0) {
+      return res.status(403).json("Unauthorized. Room does not belong to you.");
+    }
+
     const newTenant = await pool.query(
       "INSERT INTO tenants (user_id, room_id, phone, deposit, join_date) VALUES ($1,$2,$3,$4, CURRENT_DATE) RETURNING *",
       [user_id, room_id, phone, deposit]
@@ -23,6 +37,8 @@ exports.addTenant = async (req, res) => {
 exports.getTenants = async (req, res) => {
   try {
 
+    const owner_id = req.user.id;
+
     const tenants = await pool.query(`
       SELECT
         tenants.id,
@@ -37,8 +53,9 @@ exports.getTenants = async (req, res) => {
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
       LEFT JOIN users ON tenants.user_id = users.id
+      WHERE properties.owner_id = $1
       ORDER BY tenants.id
-    `);
+    `, [owner_id]);
 
     res.json(tenants.rows);
 
@@ -53,6 +70,20 @@ exports.deleteTenant = async (req, res) => {
   try {
 
     const { id } = req.params;
+    const owner_id = req.user.id;
+
+    // Verify tenant belongs to owner
+    const tenantCheck = await pool.query(`
+      SELECT tenants.id 
+      FROM tenants 
+      JOIN rooms ON tenants.room_id = rooms.id 
+      JOIN properties ON rooms.property_id = properties.id 
+      WHERE tenants.id = $1 AND properties.owner_id = $2
+    `, [id, owner_id]);
+    
+    if (tenantCheck.rows.length === 0) {
+      return res.status(403).json("Unauthorized or not found");
+    }
 
     // delete ledger records
     await pool.query(

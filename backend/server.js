@@ -10,6 +10,7 @@ const ledgerRoutes = require("./routes/ledgerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const tenantDashboardRoutes = require("./routes/tenantDashboardRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { verifyToken } = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -20,25 +21,25 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 
 /* PROPERTY ROUTES */
-app.use("/api/properties", propertyRoutes);
+app.use("/api/properties", verifyToken, propertyRoutes);
 
 /* ROOM ROUTES */
-app.use("/api/rooms", roomRoutes);
+app.use("/api/rooms", verifyToken, roomRoutes);
 
 /* TENANTS ROUTES */
-app.use("/api/tenants", tenantRoutes);
+app.use("/api/tenants", verifyToken, tenantRoutes);
 
 /* LEDGER ROUTES */
-app.use("/api/ledger", ledgerRoutes);
+app.use("/api/ledger", verifyToken, ledgerRoutes);
 
 /* DASHBOARD ROUTES */
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", verifyToken, dashboardRoutes);
 
 /* TENANT DASHBOARD ROUTES */
-app.use("/api/tenant-dashboard", tenantDashboardRoutes);
+app.use("/api/tenant-dashboard", verifyToken, tenantDashboardRoutes);
 
 /* USER ROUTES */
-app.use("/api/users", userRoutes);
+app.use("/api/users", verifyToken, userRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {

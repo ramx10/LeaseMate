@@ -4,23 +4,36 @@ const pool = require("../db");
 exports.getDashboard = async (req, res) => {
   try {
 
-    const tenants = await pool.query(
-      "SELECT COUNT(*) FROM tenants"
-    );
+    const owner_id = req.user.id;
+
+    const tenants = await pool.query(`
+      SELECT COUNT(tenants.*) 
+      FROM tenants 
+      JOIN rooms ON tenants.room_id = rooms.id 
+      JOIN properties ON rooms.property_id = properties.id 
+      WHERE properties.owner_id = $1
+    `, [owner_id]);
 
     const properties = await pool.query(
-      "SELECT COUNT(*) FROM properties"
+      "SELECT COUNT(*) FROM properties WHERE owner_id = $1",
+      [owner_id]
     );
 
-    const rooms = await pool.query(
-      "SELECT COUNT(*) FROM rooms"
-    );
+    const rooms = await pool.query(`
+      SELECT COUNT(rooms.*) 
+      FROM rooms 
+      JOIN properties ON rooms.property_id = properties.id 
+      WHERE properties.owner_id = $1
+    `, [owner_id]);
 
     const pending = await pool.query(`
-      SELECT COALESCE(SUM(total),0) AS pending_rent
+      SELECT COALESCE(SUM(ledger.total),0) AS pending_rent
       FROM ledger
-      WHERE paid = false
-    `);
+      JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE ledger.paid = false AND properties.owner_id = $1
+    `, [owner_id]);
 
     res.json({
       totalTenants: tenants.rows[0].count,
@@ -39,12 +52,17 @@ exports.getDashboard = async (req, res) => {
 /* RENT ANALYTICS — monthly rent collection */
 exports.getRentAnalytics = async (req, res) => {
   try {
+    const owner_id = req.user.id;
     const result = await pool.query(`
-      SELECT month, SUM(total) AS total_rent
+      SELECT ledger.month, SUM(ledger.total) AS total_rent
       FROM ledger
-      GROUP BY month
-      ORDER BY MIN(id)
-    `);
+      JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE properties.owner_id = $1
+      GROUP BY ledger.month
+      ORDER BY MIN(ledger.id)
+    `, [owner_id]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -56,11 +74,16 @@ exports.getRentAnalytics = async (req, res) => {
 /* PAYMENT ANALYTICS — paid vs pending count */
 exports.getPaymentAnalytics = async (req, res) => {
   try {
+    const owner_id = req.user.id;
     const result = await pool.query(`
-      SELECT paid, COUNT(*) AS count
+      SELECT ledger.paid, COUNT(*) AS count
       FROM ledger
-      GROUP BY paid
-    `);
+      JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE properties.owner_id = $1
+      GROUP BY ledger.paid
+    `, [owner_id]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
