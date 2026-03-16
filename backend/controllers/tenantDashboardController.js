@@ -18,9 +18,9 @@ exports.getTenantDashboardData = async (req, res) => {
     const roomId = tenantQuery.rows[0].room_id;
 
     // 2. Get current month's rent payment status
-    const currentMonth = new Date().toLocaleString("en-US", { month: "short", year: "numeric" });
+    const currentMonth = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
     const rentQuery = await pool.query(
-      "SELECT rent_amount, electricity_amount, total_amount, status FROM rent_payments WHERE tenant_id = $1 AND month = $2",
+      "SELECT rent as rent_amount, electricity as electricity_amount, total as total_amount, (CASE WHEN paid THEN 'Paid' ELSE 'Pending' END) as status FROM ledger WHERE tenant_id = $1 AND month = $2",
       [tenantId, currentMonth]
     );
 
@@ -28,7 +28,7 @@ exports.getTenantDashboardData = async (req, res) => {
 
     // 3. Get total spending (historical)
     const statsQuery = await pool.query(
-      "SELECT SUM(total_amount) as total_spend FROM rent_payments WHERE tenant_id = $1 AND status = 'Paid'",
+      "SELECT SUM(total) as total_spend FROM ledger WHERE tenant_id = $1 AND paid = true",
       [tenantId]
     );
 
