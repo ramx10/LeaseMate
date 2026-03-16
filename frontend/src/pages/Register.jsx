@@ -6,7 +6,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("owner");
+  const [role, setRole] = useState("Owner");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -109,8 +109,8 @@ export default function Register() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="owner" style={{ background: "#1e1b4b" }}>🏠 Owner</option>
-              <option value="tenant" style={{ background: "#1e1b4b" }}>👤 Tenant</option>
+              <option value="Owner" style={{ background: "#1e1b4b" }}>🏠 Owner</option>
+              <option value="Tenant" style={{ background: "#1e1b4b" }}>👤 Tenant</option>
             </select>
           </div>
 
