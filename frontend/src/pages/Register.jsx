@@ -7,25 +7,73 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("Owner");
+  const [areaSearch, setAreaSearch] = useState("");
+  const [selectedArea, setSelectedArea] = useState("");
+  const [buildingSearch, setBuildingSearch] = useState("");
   const [propertyId, setPropertyId] = useState("");
+  const [areas, setAreas] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const [showBuildingDropdown, setShowBuildingDropdown] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch properties for tenant registration
+  // Fetch areas as user types (debounced)
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/auth/properties")
-      .then((res) => setProperties(res.data))
-      .catch((err) => console.log(err));
-  }, []);
+    if (role !== "Tenant") return;
+    const timer = setTimeout(() => {
+      const url = areaSearch
+        ? `http://localhost:5000/api/auth/areas?q=${encodeURIComponent(areaSearch)}`
+        : "http://localhost:5000/api/auth/areas";
+      axios.get(url)
+        .then((res) => setAreas(res.data))
+        .catch((err) => console.log(err));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [areaSearch, role]);
+
+  // Fetch properties when area is selected, with building search
+  useEffect(() => {
+    if (!selectedArea) {
+      setProperties([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      let url = `http://localhost:5000/api/auth/properties?area=${encodeURIComponent(selectedArea)}`;
+      if (buildingSearch) {
+        url += `&q=${encodeURIComponent(buildingSearch)}`;
+      }
+      axios.get(url)
+        .then((res) => setProperties(res.data))
+        .catch((err) => console.log(err));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [selectedArea, buildingSearch]);
+
+  const selectArea = (area) => {
+    setSelectedArea(area);
+    setAreaSearch(area);
+    setShowAreaDropdown(false);
+    setPropertyId("");
+    setBuildingSearch("");
+  };
+
+  const selectBuilding = (property) => {
+    setPropertyId(property.id);
+    setBuildingSearch(property.property_name);
+    setShowBuildingDropdown(false);
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     if (!name || !email || !password || !role) {
       setError("Please fill in all fields.");
+      return;
+    }
+    if (role === "Tenant" && !selectedArea) {
+      setError("Please select your area.");
       return;
     }
     if (role === "Tenant" && !propertyId) {
@@ -47,6 +95,14 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const inputStyle = { background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" };
+  const dropdownStyle = {
+    background: "rgba(30,27,75,0.98)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.15)",
+    boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
   };
 
   return (
@@ -85,7 +141,7 @@ export default function Register() {
             <input
               type="text"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+              style={inputStyle}
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -97,7 +153,7 @@ export default function Register() {
             <input
               type="email"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+              style={inputStyle}
               placeholder="owner@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -109,7 +165,7 @@ export default function Register() {
             <input
               type="password"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+              style={inputStyle}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -120,11 +176,16 @@ export default function Register() {
             <label className="block text-indigo-200 text-sm font-medium mb-1.5">Role</label>
             <select
               className="w-full px-4 py-3 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+              style={inputStyle}
               value={role}
               onChange={(e) => {
                 setRole(e.target.value);
-                if (e.target.value === "Owner") setPropertyId("");
+                if (e.target.value === "Owner") {
+                  setSelectedArea("");
+                  setAreaSearch("");
+                  setPropertyId("");
+                  setBuildingSearch("");
+                }
               }}
             >
               <option value="Owner" style={{ background: "#1e1b4b" }}>🏠 Owner</option>
@@ -132,27 +193,95 @@ export default function Register() {
             </select>
           </div>
 
-          {/* Property/Building selection — shown only for Tenants */}
+          {/* Searchable Area + Building — shown only for Tenants */}
           {role === "Tenant" && (
-            <div>
-              <label className="block text-indigo-200 text-sm font-medium mb-1.5">Select Your Building / Property</label>
-              <select
-                className="w-full px-4 py-3 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
-                value={propertyId}
-                onChange={(e) => setPropertyId(e.target.value)}
-              >
-                <option value="" style={{ background: "#1e1b4b" }}>— Choose a building —</option>
-                {properties.map((p) => (
-                  <option key={p.id} value={p.id} style={{ background: "#1e1b4b" }}>
-                    🏢 {p.property_name}
-                  </option>
-                ))}
-              </select>
-              {properties.length === 0 && (
-                <p className="text-yellow-300 text-xs mt-1.5">No buildings available yet. Ask your owner to add a property first.</p>
+            <>
+              {/* Area search */}
+              <div className="relative">
+                <label className="block text-indigo-200 text-sm font-medium mb-1.5">🔍 Search Your Area</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  style={inputStyle}
+                  placeholder="Type to search area (e.g. Kothrud)..."
+                  value={areaSearch}
+                  onChange={(e) => {
+                    setAreaSearch(e.target.value);
+                    setSelectedArea("");
+                    setPropertyId("");
+                    setBuildingSearch("");
+                    setShowAreaDropdown(true);
+                  }}
+                  onFocus={() => setShowAreaDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowAreaDropdown(false), 200)}
+                />
+                {showAreaDropdown && areas.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={dropdownStyle}>
+                    {areas.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-indigo-500/30 transition-colors capitalize"
+                        onMouseDown={() => selectArea(a)}
+                      >
+                        📍 {a}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {showAreaDropdown && areas.length === 0 && areaSearch && (
+                  <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden" style={dropdownStyle}>
+                    <p className="px-4 py-3 text-yellow-300 text-xs">No areas found matching "{areaSearch}"</p>
+                  </div>
+                )}
+                {selectedArea && (
+                  <p className="text-green-300 text-xs mt-1">✓ Area selected: <span className="capitalize font-medium">{selectedArea}</span></p>
+                )}
+              </div>
+
+              {/* Building search — shown after area is selected */}
+              {selectedArea && (
+                <div className="relative">
+                  <label className="block text-indigo-200 text-sm font-medium mb-1.5">🔍 Search Building / Property</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    style={inputStyle}
+                    placeholder="Type to search building..."
+                    value={buildingSearch}
+                    onChange={(e) => {
+                      setBuildingSearch(e.target.value);
+                      setPropertyId("");
+                      setShowBuildingDropdown(true);
+                    }}
+                    onFocus={() => setShowBuildingDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowBuildingDropdown(false), 200)}
+                  />
+                  {showBuildingDropdown && properties.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={dropdownStyle}>
+                      {properties.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-indigo-500/30 transition-colors"
+                          onMouseDown={() => selectBuilding(p)}
+                        >
+                          🏢 {p.property_name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showBuildingDropdown && properties.length === 0 && (
+                    <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden" style={dropdownStyle}>
+                      <p className="px-4 py-3 text-yellow-300 text-xs">No buildings found in this area{buildingSearch ? ` matching "${buildingSearch}"` : ""}.</p>
+                    </div>
+                  )}
+                  {propertyId && (
+                    <p className="text-green-300 text-xs mt-1">✓ Building selected: <span className="font-medium">{buildingSearch}</span></p>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
 
           {error && (
