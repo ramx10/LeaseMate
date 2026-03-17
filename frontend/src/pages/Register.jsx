@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -7,15 +7,29 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("Owner");
+  const [propertyId, setPropertyId] = useState("");
+  const [properties, setProperties] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Fetch properties for tenant registration
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/auth/properties")
+      .then((res) => setProperties(res.data))
+      .catch((err) => console.log(err));
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     if (!name || !email || !password || !role) {
       setError("Please fill in all fields.");
+      return;
+    }
+    if (role === "Tenant" && !propertyId) {
+      setError("Please select a building/property.");
       return;
     }
     setLoading(true);
@@ -25,6 +39,7 @@ export default function Register() {
         email,
         password,
         role,
+        property_id: role === "Tenant" ? propertyId : null,
       });
       navigate("/login");
     } catch (err) {
@@ -107,12 +122,38 @@ export default function Register() {
               className="w-full px-4 py-3 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => {
+                setRole(e.target.value);
+                if (e.target.value === "Owner") setPropertyId("");
+              }}
             >
               <option value="Owner" style={{ background: "#1e1b4b" }}>🏠 Owner</option>
               <option value="Tenant" style={{ background: "#1e1b4b" }}>👤 Tenant</option>
             </select>
           </div>
+
+          {/* Property/Building selection — shown only for Tenants */}
+          {role === "Tenant" && (
+            <div>
+              <label className="block text-indigo-200 text-sm font-medium mb-1.5">Select Your Building / Property</label>
+              <select
+                className="w-full px-4 py-3 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+                value={propertyId}
+                onChange={(e) => setPropertyId(e.target.value)}
+              >
+                <option value="" style={{ background: "#1e1b4b" }}>— Choose a building —</option>
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id} style={{ background: "#1e1b4b" }}>
+                    🏢 {p.property_name}
+                  </option>
+                ))}
+              </select>
+              {properties.length === 0 && (
+                <p className="text-yellow-300 text-xs mt-1.5">No buildings available yet. Ask your owner to add a property first.</p>
+              )}
+            </div>
+          )}
 
           {error && (
             <div className="text-red-300 text-sm bg-red-500/10 px-4 py-2.5 rounded-xl border border-red-500/20">
