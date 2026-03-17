@@ -4,12 +4,53 @@ const jwt = require("jsonwebtoken");
 
 const SECRET = "leasemate_secret";
 
-/* GET ALL PROPERTIES (PUBLIC - for registration dropdown) */
+/* GET ALL DISTINCT AREAS (PUBLIC - supports ?q= search) */
+exports.getDistinctAreas = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    let query = "SELECT DISTINCT area FROM properties WHERE area IS NOT NULL";
+    let params = [];
+
+    if (q) {
+      query += " AND LOWER(area) LIKE LOWER($1)";
+      params.push(`%${q}%`);
+    }
+
+    query += " ORDER BY area ASC";
+
+    const areas = await pool.query(query, params);
+    res.json(areas.rows.map((r) => r.area));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching areas");
+  }
+};
+
+/* GET PROPERTIES BY AREA (PUBLIC - supports ?area= and ?q= search) */
 exports.getPublicProperties = async (req, res) => {
   try {
-    const properties = await pool.query(
-      "SELECT id, property_name FROM properties ORDER BY property_name ASC"
-    );
+    const { area, q } = req.query;
+
+    let query = "SELECT id, property_name, area FROM properties WHERE 1=1";
+    let params = [];
+    let paramIndex = 1;
+
+    if (area) {
+      query += ` AND LOWER(area) = LOWER($${paramIndex})`;
+      params.push(area);
+      paramIndex++;
+    }
+
+    if (q) {
+      query += ` AND LOWER(property_name) LIKE LOWER($${paramIndex})`;
+      params.push(`%${q}%`);
+      paramIndex++;
+    }
+
+    query += " ORDER BY property_name ASC";
+
+    const properties = await pool.query(query, params);
     res.json(properties.rows);
   } catch (error) {
     console.error(error);
