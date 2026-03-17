@@ -12,6 +12,7 @@ CREATE TABLE properties (
     owner_id INT REFERENCES users(id),
     property_name VARCHAR(100),
     address TEXT,
+    area VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE rooms (
