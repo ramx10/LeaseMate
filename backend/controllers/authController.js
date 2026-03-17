@@ -4,6 +4,19 @@ const jwt = require("jsonwebtoken");
 
 const SECRET = "leasemate_secret";
 
+/* GET ALL PROPERTIES (PUBLIC - for registration dropdown) */
+exports.getPublicProperties = async (req, res) => {
+  try {
+    const properties = await pool.query(
+      "SELECT id, property_name FROM properties ORDER BY property_name ASC"
+    );
+    res.json(properties.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching properties");
+  }
+};
+
 /* REGISTER */
 exports.register = async (req, res) => {
   try {
@@ -12,17 +25,22 @@ exports.register = async (req, res) => {
       return res.status(400).json("Request body missing");
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, property_id } = req.body;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json("All fields are required");
     }
 
+    // If role is Tenant, property_id is required
+    if (role === "Tenant" && !property_id) {
+      return res.status(400).json("Please select a building/property");
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await pool.query(
-      "INSERT INTO users (name,email,password,role) VALUES ($1,$2,$3,$4) RETURNING *",
-      [name, email, hashedPassword, role]
+      "INSERT INTO users (name,email,password,role,property_id) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+      [name, email, hashedPassword, role, role === "Tenant" ? property_id : null]
     );
 
     res.json(user.rows[0]);

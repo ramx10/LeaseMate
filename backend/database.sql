@@ -4,6 +4,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE,
     password TEXT,
     role VARCHAR(20),
+    property_id INT REFERENCES properties(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE properties (
