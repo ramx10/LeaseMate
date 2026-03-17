@@ -7,6 +7,7 @@ export default function Properties() {
   const [filtered, setFiltered] = useState([]);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [area, setArea] = useState("");
   const [search, setSearch] = useState("");
 
   const fetchProperties = () => {
@@ -31,13 +32,18 @@ export default function Properties() {
   }, [search, properties]);
 
   const addProperty = async () => {
-    if (!name || !address) return;
+    if (!name || !address || !area) {
+      alert("Please fill all fields including area");
+      return;
+    }
     await axios.post("http://localhost:5000/api/properties/add", {
       property_name: name,
       address,
+      area,
     });
     setName("");
     setAddress("");
+    setArea("");
     fetchProperties();
   };
 
@@ -77,6 +83,12 @@ export default function Properties() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
+          <input
+            className="flex-1 min-w-40 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            placeholder="Area (e.g. Kothrud)"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+          />
           <button
             onClick={addProperty}
             className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-95"
@@ -104,6 +116,7 @@ export default function Properties() {
             <tr style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)" }}>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">#</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Property Name</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Area</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Address</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Actions</th>
             </tr>
@@ -111,13 +124,18 @@ export default function Properties() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center py-12 text-gray-400 text-sm">No properties found</td>
+                <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">No properties found</td>
               </tr>
             ) : (
               filtered.map((p, i) => (
                 <tr key={p.id} className={`border-t border-gray-50 hover:bg-indigo-50/50 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
                   <td className="px-5 py-3.5 text-gray-400 text-sm">{p.id}</td>
                   <td className="px-5 py-3.5 font-semibold text-gray-700 text-sm">{p.property_name}</td>
+                  <td className="px-5 py-3.5 text-sm">
+                    <span className="inline-block bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg text-xs font-medium capitalize">
+                      📍 {p.area || "—"}
+                    </span>
+                  </td>
                   <td className="px-5 py-3.5 text-gray-500 text-sm">{p.address}</td>
                   <td className="px-5 py-3.5">
                     <button
