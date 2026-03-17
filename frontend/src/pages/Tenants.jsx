@@ -97,7 +97,7 @@ export default function Tenants() {
             <option value="">Select User</option>
             {unassignedUsers.map((user) => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.email})
+                {user.name} ({user.email}) — {user.property_name || ""}
               </option>
             ))}
           </select>
