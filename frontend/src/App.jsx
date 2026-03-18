@@ -5,6 +5,7 @@ import Properties from "./pages/Properties";
 import Rooms from "./pages/Rooms";
 import Tenants from "./pages/Tenants";
 import Ledger from "./pages/Ledger";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { AuthProvider } from "./context/AuthContext";
@@ -61,6 +62,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["Owner"]}>
                 <Ledger />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={["Owner"]}>
+                <Settings />
               </ProtectedRoute>
             }
           />
