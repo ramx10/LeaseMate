@@ -61,9 +61,14 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
-            style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)" }}>
-            🏢
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
+            <svg width="36" height="36" viewBox="0 0 64 64" fill="none">
+              <rect x="8" y="28" width="36" height="30" rx="4" stroke="white" strokeWidth="4.5" fill="none"/>
+              <path d="M4 30L26 8L48 30" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M38 14L48 24" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
+              <polyline points="16,44 24,52 38,34" stroke="rgba(255,255,255,0.8)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
           </div>
           <h1 className="text-white text-2xl font-bold">Welcome back</h1>
           <p className="text-indigo-300 text-sm mt-1">Sign in to your LeaseMate account</p>
