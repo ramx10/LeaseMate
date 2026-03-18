@@ -64,15 +64,12 @@ export default function Sidebar() {
         {/* Brand Header */}
         <div className="px-5 py-6 flex items-center justify-between">
           <div className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.4)",
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+              <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+                <rect x="8" y="28" width="36" height="30" rx="4" stroke="white" strokeWidth="4.5" fill="none"/>
+                <path d="M4 30L26 8L48 30" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <path d="M38 14L48 24" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                <polyline points="16,44 24,52 38,34" stroke="#818cf8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
             </div>
             <div>
