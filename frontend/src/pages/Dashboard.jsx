@@ -2,68 +2,288 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
 import StatsCard from "../components/StatsCard";
+import RoomCard from "../components/RoomCard";
 import RentChart from "../components/RentChart";
 import PaymentChart from "../components/PaymentChart";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({});
+  const [properties, setProperties] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [tenants, setTenants] = useState([]);
+  const [ledger, setLedger] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/dashboard")
-      .then((res) => setStats(res.data))
-      .catch((err) => console.log(err));
+    const fetchAll = async () => {
+      try {
+        const [statsRes, propsRes, roomsRes, tenantsRes, ledgerRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/dashboard"),
+          axios.get("http://localhost:5000/api/properties"),
+          axios.get("http://localhost:5000/api/rooms"),
+          axios.get("http://localhost:5000/api/tenants"),
+          axios.get("http://localhost:5000/api/ledger"),
+        ]);
+        setStats(statsRes.data);
+        setProperties(propsRes.data);
+        setRooms(roomsRes.data);
+        setTenants(tenantsRes.data);
+        setLedger(ledgerRes.data);
+      } catch (err) {
+        console.log("Error loading dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
+
+  // Build a map from room → tenants with payment status
+  const buildPropertyRoomHierarchy = () => {
+    const roomMap = {};
+    rooms.forEach((room) => {
+      roomMap[room.id] = {
+        ...room,
+        tenants: [],
+      };
+    });
+
+    tenants.forEach((tenant) => {
+      if (roomMap[tenant.room_id]) {
+        // Find latest ledger entry for this tenant
+        const tenantLedger = ledger.filter(
+          (l) => l.tenant_id === tenant.id
+        );
+        const latestPayment = tenantLedger.length > 0 ? tenantLedger[tenantLedger.length - 1] : null;
+
+        let status = "pending";
+        if (latestPayment) {
+          if (latestPayment.paid) status = "paid";
+          else if (latestPayment.amount_paid > 0) status = "partial";
+          else status = "pending";
+        }
+
+        roomMap[tenant.room_id].tenants.push({
+          id: tenant.id,
+          name: tenant.name,
+          status,
+        });
+      }
+    });
+
+    // Group rooms by property
+    const propertyMap = {};
+    properties.forEach((prop) => {
+      propertyMap[prop.id] = {
+        ...prop,
+        rooms: [],
+      };
+    });
+
+    Object.values(roomMap).forEach((room) => {
+      if (propertyMap[room.property_id]) {
+        propertyMap[room.property_id].rooms.push(room);
+      }
+    });
+
+    return Object.values(propertyMap);
+  };
+
+  const hierarchy = loading ? [] : buildPropertyRoomHierarchy();
+
+  // Calculate paid rent from stats
+  const paidRent =
+    stats.totalRooms !== undefined
+      ? "₹ " + (stats.paid_rent || "0")
+      : "₹ 0";
+
+  const handleMarkPayment = (room) => {
+    // Navigate to ledger or open modal
+    window.location.href = "/ledger";
+  };
 
   return (
     <MainLayout title="Dashboard">
-
       {/* Welcome Banner */}
       <div
-        className="rounded-2xl p-6 mb-8 text-white relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #6366f1 0%, #3b82f6 60%, #06b6d4 100%)" }}
+        className="rounded-2xl p-6 lg:p-8 mb-8 text-white relative overflow-hidden animate-fade-in-up"
+        style={{
+          background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #3b82f6 100%)",
+        }}
       >
-        <div className="absolute right-6 top-0 h-full opacity-10 flex items-center text-9xl select-none">🏢</div>
-        <h1 className="text-2xl font-bold">Welcome back, Owner 👋</h1>
-        <p className="text-indigo-100 mt-1 text-sm">Here's your property overview for today.</p>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)", transform: "translate(30%, -30%)" }}
+        />
+        <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full opacity-[0.06]"
+          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">👋</span>
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Welcome back, Owner</h1>
+          </div>
+          <p className="text-indigo-200 text-sm lg:text-base mt-1 max-w-lg">
+            Here's your property overview for today. Manage your properties, rooms, and tenant payments all in one place.
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-        <StatsCard
-          title="Total Tenants"
-          value={stats.totalTenants}
-          icon="👤"
-          gradient="linear-gradient(135deg, #6366f1, #818cf8)"
-        />
-        <StatsCard
-          title="Total Properties"
-          value={stats.totalProperties}
-          icon="🏠"
-          gradient="linear-gradient(135deg, #3b82f6, #60a5fa)"
-        />
-        <StatsCard
-          title="Total Rooms"
-          value={stats.totalRooms}
-          icon="🚪"
-          gradient="linear-gradient(135deg, #06b6d4, #22d3ee)"
-        />
-        <StatsCard
-          title="Pending Rent"
-          value={"₹ " + (stats.pending_rent || 0)}
-          icon="💰"
-          gradient="linear-gradient(135deg, #f59e0b, #fbbf24)"
-        />
+        <div className="delay-1 animate-fade-in-up">
+          <StatsCard
+            title="Total Properties"
+            value={stats.totalProperties}
+            icon="🏠"
+            gradient="linear-gradient(135deg, #6366f1, #818cf8)"
+            trend={12}
+            trendLabel="vs last month"
+          />
+        </div>
+        <div className="delay-2 animate-fade-in-up">
+          <StatsCard
+            title="Total Tenants"
+            value={stats.totalTenants}
+            icon="👤"
+            gradient="linear-gradient(135deg, #3b82f6, #60a5fa)"
+            trend={8}
+            trendLabel="vs last month"
+          />
+        </div>
+        <div className="delay-3 animate-fade-in-up">
+          <StatsCard
+            title="Paid Rent"
+            value={paidRent}
+            icon="💰"
+            gradient="linear-gradient(135deg, #10b981, #34d399)"
+            trend={5}
+            trendLabel="vs last month"
+          />
+        </div>
+        <div className="delay-4 animate-fade-in-up">
+          <StatsCard
+            title="Pending Rent"
+            value={"₹ " + (stats.pending_rent || 0)}
+            icon="⏳"
+            gradient="linear-gradient(135deg, #f59e0b, #fbbf24)"
+            trend={-3}
+            trendLabel="vs last month"
+          />
+        </div>
       </div>
 
-      {/* Charts */}
+      {/* Property & Room Cards Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 tracking-tight">Properties & Rooms</h2>
+            <p className="text-slate-400 text-xs mt-0.5 font-medium">Manage tenant payments across all your properties</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-400">{properties.length} properties</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs font-medium text-slate-400">{rooms.length} rooms</span>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 animate-pulse" style={{ boxShadow: "var(--shadow-sm)" }}>
+                <div className="h-4 bg-slate-200 rounded w-1/3 mb-4" />
+                <div className="h-3 bg-slate-100 rounded w-2/3 mb-2" />
+                <div className="h-3 bg-slate-100 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : hierarchy.length === 0 ? (
+          <div
+            className="bg-white rounded-2xl p-10 text-center"
+            style={{ boxShadow: "var(--shadow-sm)" }}
+          >
+            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🏠</span>
+            </div>
+            <h3 className="text-slate-700 font-semibold text-base">No properties yet</h3>
+            <p className="text-slate-400 text-sm mt-1">Add a property to start managing rooms and tenants.</p>
+          </div>
+        ) : (
+          hierarchy.map((property, propIdx) => (
+            <div key={property.id} className={`mb-6 animate-fade-in-up delay-${propIdx + 1}`}>
+              {/* Property header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                    boxShadow: "0 3px 8px rgba(99,102,241,0.3)",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">{property.name}</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    {property.address || property.area || "—"} • {property.rooms?.length || 0} rooms
+                  </p>
+                </div>
+              </div>
+
+              {/* Room cards grid */}
+              {property.rooms && property.rooms.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pl-11">
+                  {property.rooms.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      onMarkPayment={handleMarkPayment}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="pl-11">
+                  <div className="bg-slate-50 rounded-xl p-4 text-center border border-dashed border-slate-200">
+                    <p className="text-xs text-slate-400 font-medium">No rooms added yet</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
-          <h3 className="font-bold text-gray-700 mb-4 text-base">📈 Monthly Rent Collection</h3>
+        <div
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5"
+          style={{ boxShadow: "var(--shadow-md)" }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <h3 className="font-bold text-slate-700 text-sm">Monthly Rent Collection</h3>
+          </div>
           <RentChart />
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
-          <h3 className="font-bold text-gray-700 mb-4 text-base">💳 Payment Status</h3>
+        <div
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6"
+          style={{ boxShadow: "var(--shadow-md)" }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <h3 className="font-bold text-slate-700 text-sm">Payment Status</h3>
+          </div>
           <PaymentChart />
         </div>
       </div>
