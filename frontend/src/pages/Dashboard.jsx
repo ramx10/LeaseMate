@@ -65,7 +65,7 @@ export default function Dashboard() {
 
         roomMap[tenant.room_id].tenants.push({
           id: tenant.id,
-          name: tenant.name,
+          name: tenant.tenant_name || "Unknown",
           status,
         });
       }
