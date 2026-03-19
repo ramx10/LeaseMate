@@ -55,6 +55,7 @@ exports.getLedger = async (req, res) => {
     const ledger = await pool.query(`
       SELECT
         ledger.id,
+        ledger.tenant_id,
         ledger.month,
         ledger.rent,
         ledger.electricity,
