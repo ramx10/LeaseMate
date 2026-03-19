@@ -1,17 +1,10 @@
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function Navbar({ title = "Dashboard" }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchFocused, setSearchFocused] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   return (
     <header
@@ -117,14 +110,6 @@ export default function Navbar({ title = "Dashboard" }) {
             {user?.name?.[0] || (user?.role === "Tenant" ? "T" : "O")}
           </div>
         </div>
-
-        {/* Logout button */}
-        <button
-          onClick={handleLogout}
-          className="ml-1 px-3.5 py-2 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all border border-rose-100 hover:border-rose-200"
-        >
-          Logout
-        </button>
       </div>
     </header>
   );
