@@ -57,6 +57,7 @@ exports.getTenants = async (req, res) => {
     const tenants = await pool.query(`
       SELECT
         tenants.id,
+        tenants.room_id,
         users.name AS tenant_name,
         users.email AS tenant_email,
         tenants.phone,
