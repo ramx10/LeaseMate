@@ -10,7 +10,6 @@ const ledgerRoutes = require("./routes/ledgerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const tenantDashboardRoutes = require("./routes/tenantDashboardRoutes");
 const userRoutes = require("./routes/userRoutes");
-const electricityRoutes = require("./routes/electricityRoutes");
 const { verifyToken } = require("./middleware/authMiddleware");
 
 const app = express();
