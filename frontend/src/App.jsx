@@ -7,6 +7,7 @@ import Tenants from "./pages/Tenants";
 import Ledger from "./pages/Ledger";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import Issues from "./pages/Issues";
 import Register from "./pages/Register";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./context/ProtectedRoute";
@@ -62,6 +63,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["Owner"]}>
                 <Ledger />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/issues"
+            element={
+              <ProtectedRoute allowedRoles={["Owner", "Tenant"]}>
+                <Issues />
               </ProtectedRoute>
             }
           />
