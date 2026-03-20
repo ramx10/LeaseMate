@@ -4,18 +4,10 @@ exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
     const role = req.user.role; 
-    
-    const currentDay = new Date().getDate();
-    let alertLevel = "Normal";
-
-    if (currentDay > 10) alertLevel = "Danger";
-    else if (currentDay > 5) alertLevel = "Medium";
 
     let notifications = [];
 
     if (role === "Tenant") {
-        if (currentDay <= 5) return res.json([]);
-
         // Get tenant's own id
         const tenantQuery = await pool.query("SELECT id FROM tenants WHERE user_id = $1", [userId]);
         if (tenantQuery.rows.length === 0) return res.json([]);
@@ -37,17 +29,7 @@ exports.getNotifications = async (req, res) => {
           LIMIT 10
         `, [tenantId]);
 
-        notifications = result.rows.map(row => ({
-          id: row.ledger_id,
-          type: "rent_due",
-          tenantName: row.tenant_name || "You",
-          roomNumber: row.room_number,
-          amount: Math.round(row.amount_due),
-          month: row.month,
-          title: alertLevel === "Danger" ? "URGENT: Rent Overdue" : "Reminder: Rent is Due",
-          time: "Pending",
-          level: alertLevel
-        }));
+        notifications = processNotifications(result.rows, role);
 
     } else {
         // Owner
@@ -68,17 +50,7 @@ exports.getNotifications = async (req, res) => {
           LIMIT 10
         `, [userId]);
 
-        notifications = result.rows.map(row => ({
-          id: row.ledger_id,
-          type: "rent_due",
-          tenantName: row.tenant_name || "Unknown",
-          roomNumber: row.room_number,
-          amount: Math.round(row.amount_due),
-          month: row.month,
-          title: "Rent Due",
-          time: "Pending",
-          level: "Danger"
-        }));
+        notifications = processNotifications(result.rows, role);
     }
 
     res.json(notifications);
@@ -87,3 +59,62 @@ exports.getNotifications = async (req, res) => {
     res.status(500).send("Error fetching notifications");
   }
 };
+
+function processNotifications(rows, role) {
+  const validNotifications = [];
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
+
+  for (const row of rows) {
+    // row.month is typically like "April 2026"
+    const ledgerDate = new Date(row.month + " 1");
+    // check if valid date
+    if (isNaN(ledgerDate.getTime())) continue;
+
+    const ledgerYear = ledgerDate.getFullYear();
+    const ledgerMonth = ledgerDate.getMonth();
+    
+    const monthDiff = (currentYear - ledgerYear) * 12 + (currentMonth - ledgerMonth);
+
+    let rowAlertLevel = "Normal";
+    let title = "Rent Due";
+    let showNotification = true;
+
+    if (monthDiff < 0) {
+       // Future month: don't show as a notification (not yet due)
+       showNotification = false; 
+    } else if (monthDiff === 0) {
+       // Current month
+       if (currentDay <= 5) {
+          showNotification = false; // Not strict due yet, usually due 1st-5th
+       } else if (currentDay > 10) {
+          rowAlertLevel = "Danger";
+          title = "URGENT: Rent Overdue";
+       } else {
+          rowAlertLevel = "Medium";
+          title = "Reminder: Rent is Due";
+       }
+    } else {
+       // Past months -> ALWAYS overdue
+       rowAlertLevel = "Danger";
+       title = "URGENT: Rent Overdue";
+    }
+
+    if (showNotification) {
+       validNotifications.push({
+          id: row.ledger_id,
+          type: "rent_due",
+          tenantName: row.tenant_name || (role === "Tenant" ? "You" : "Unknown"),
+          roomNumber: row.room_number,
+          amount: Math.round(row.amount_due),
+          month: row.month,
+          title: title,
+          time: "Pending",
+          level: rowAlertLevel
+       });
+    }
+  }
+  return validNotifications;
+}
