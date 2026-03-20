@@ -15,8 +15,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAll = async () => {
+    let isMounted = true;
+    const fetchAll = async (isBackground = false) => {
       try {
+        if (!isBackground) setLoading(true);
         const [statsRes, propsRes, roomsRes, tenantsRes, ledgerRes] = await Promise.all([
           axios.get("http://localhost:5000/api/dashboard"),
           axios.get("http://localhost:5000/api/properties"),
@@ -24,18 +26,25 @@ export default function Dashboard() {
           axios.get("http://localhost:5000/api/tenants"),
           axios.get("http://localhost:5000/api/ledger"),
         ]);
-        setStats(statsRes.data);
-        setProperties(propsRes.data);
-        setRooms(roomsRes.data);
-        setTenants(tenantsRes.data);
-        setLedger(ledgerRes.data);
+        if (isMounted) {
+          setStats(statsRes.data);
+          setProperties(propsRes.data);
+          setRooms(roomsRes.data);
+          setTenants(tenantsRes.data);
+          setLedger(ledgerRes.data);
+        }
       } catch (err) {
         console.log("Error loading dashboard data:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchAll();
+    const interval = setInterval(() => fetchAll(true), 15000); // Poll every 15s for real-time updates
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Build a map from room → tenants with payment status
@@ -259,32 +268,20 @@ export default function Dashboard() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5"
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl cursor-default"
           style={{ boxShadow: "var(--shadow-md)" }}
         >
-          <div className="flex items-center gap-2 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-              </svg>
-            </div>
-            <h3 className="font-bold text-slate-700 text-sm">Monthly Rent Collection</h3>
+          <div className="mb-2">
+            <RentChart />
           </div>
-          <RentChart />
         </div>
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6"
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl cursor-default"
           style={{ boxShadow: "var(--shadow-md)" }}
         >
-          <div className="flex items-center gap-2 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
-            </div>
-            <h3 className="font-bold text-slate-700 text-sm">Payment Status</h3>
+          <div className="mb-2">
+            <PaymentChart />
           </div>
-          <PaymentChart />
         </div>
       </div>
 
