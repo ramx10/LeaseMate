@@ -36,7 +36,7 @@ export default function RoomCard({ room, onMarkPayment }) {
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden card-hover animate-fade-in-up"
+      className="bg-white rounded-2xl overflow-hidden card-hover animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{ boxShadow: "var(--shadow-md)" }}
     >
       {/* Room Header */}
