@@ -31,26 +31,62 @@ exports.getNotifications = async (req, res) => {
 
         notifications = processNotifications(result.rows, role);
 
+        // Fetch tenant issue updates (In Progress / Resolved)
+        const tenantIssues = await pool.query(`
+          SELECT issues.id, issues.category, issues.status, rooms.room_number
+          FROM issues
+          JOIN tenants ON issues.tenant_id = tenants.id
+          JOIN rooms ON tenants.room_id = rooms.id
+          WHERE issues.tenant_id = $1 AND issues.status != 'Pending'
+          ORDER BY issues.id DESC
+          LIMIT 5
+        `, [tenantId]);
+
+        const tenantIssueNotifs = tenantIssues.rows.map(row => ({
+          id: `issue_${row.id}`,
+          type: "issue_update",
+          tenantName: "You",
+          roomNumber: row.room_number,
+          amount: null,
+          month: "Issue",
+          title: `Issue ${row.status}`,
+          description: row.category,
+          time: "Update",
+          level: row.status === "Resolved" ? "Normal" : "Medium"
+        }));
+
+        notifications.push(...tenantIssueNotifs);
+
     } else {
-        // Owner
-        const result = await pool.query(`
-          SELECT 
-            users.name AS tenant_name,
-            rooms.room_number,
-            ledger.total AS amount_due,
-            ledger.month,
-            ledger.id AS ledger_id
-          FROM ledger
-          JOIN tenants ON ledger.tenant_id = tenants.id
+        // Owner (Rent notifications omitted for Owners by request)
+
+        // Fetch owner new issues (Pending)
+        const pendingIssues = await pool.query(`
+          SELECT issues.id, issues.category, users.name as tenant_name, rooms.room_number
+          FROM issues
+          JOIN tenants ON issues.tenant_id = tenants.id
           JOIN users ON tenants.user_id = users.id
           JOIN rooms ON tenants.room_id = rooms.id
           JOIN properties ON rooms.property_id = properties.id
-          WHERE ledger.paid = false AND properties.owner_id = $1
-          ORDER BY ledger.id DESC
-          LIMIT 10
+          WHERE issues.status = 'Pending' AND properties.owner_id = $1
+          ORDER BY issues.id DESC
+          LIMIT 5
         `, [userId]);
 
-        notifications = processNotifications(result.rows, role);
+        const ownerIssueNotifs = pendingIssues.rows.map(row => ({
+          id: `issue_${row.id}`,
+          type: "new_issue",
+          tenantName: row.tenant_name || "Unknown",
+          roomNumber: row.room_number,
+          amount: null,
+          month: "Issue",
+          title: "New Issue Reported",
+          description: row.category,
+          time: "Pending",
+          level: "Medium"
+        }));
+
+        notifications.push(...ownerIssueNotifs);
     }
 
     res.json(notifications);
