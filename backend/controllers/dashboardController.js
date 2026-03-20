@@ -27,7 +27,7 @@ exports.getDashboard = async (req, res) => {
     `, [owner_id]);
 
     const pending = await pool.query(`
-      SELECT COALESCE(SUM(ledger.total - ledger.amount_paid), 0) AS pending_rent
+      SELECT COALESCE(SUM(ledger.total), 0) AS pending_rent
       FROM ledger
       JOIN tenants ON ledger.tenant_id = tenants.id
       JOIN rooms ON tenants.room_id = rooms.id
@@ -36,12 +36,12 @@ exports.getDashboard = async (req, res) => {
     `, [owner_id]);
 
     const paid = await pool.query(`
-      SELECT COALESCE(SUM(ledger.amount_paid), 0) AS paid_rent
+      SELECT COALESCE(SUM(ledger.total), 0) AS paid_rent
       FROM ledger
       JOIN tenants ON ledger.tenant_id = tenants.id
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
-      WHERE properties.owner_id = $1
+      WHERE ledger.paid = true AND properties.owner_id = $1
     `, [owner_id]);
 
     res.json({
