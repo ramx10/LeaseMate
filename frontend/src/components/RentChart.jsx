@@ -42,16 +42,36 @@ export default function RentChart() {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: { callbacks: { label: (ctx) => `₹ ${ctx.raw}` } },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        padding: 12,
+        titleFont: { size: 13, family: "'Inter', sans-serif" },
+        bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" },
+        callbacks: { label: (ctx) => `₹ ${ctx.raw}` },
+        cornerRadius: 8,
+      },
     },
     scales: {
-      y: { grid: { color: "rgba(0,0,0,0.05)" }, ticks: { color: "#6b7280" } },
-      x: { grid: { display: false }, ticks: { color: "#6b7280" } },
+      y: { 
+        grid: { color: "rgba(0,0,0,0.04)" }, 
+        ticks: { color: "#9ca3af", font: { family: "'Inter', sans-serif", size: 11 }, padding: 8 },
+        border: { display: false }
+      },
+      x: { 
+        grid: { display: false }, 
+        ticks: { color: "#9ca3af", font: { family: "'Inter', sans-serif", size: 11 }, padding: 8 },
+        border: { display: false }
+      },
     },
   };
 
   if (!chartData) return <div className="text-sm text-gray-400 text-center py-10">Loading chart…</div>;
-  return <Bar data={chartData} options={options} />;
+  return (
+    <div className="w-full relative" style={{ height: '300px' }}>
+      <Bar data={chartData} options={options} />
+    </div>
+  );
 }
