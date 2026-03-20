@@ -3,8 +3,7 @@ export default function StatsCard({ title, value, icon, gradient, trend, trendLa
 
   return (
     <div
-      className="relative bg-white rounded-2xl p-6 overflow-hidden card-hover animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-default"
-      style={{ boxShadow: "var(--shadow-md)" }}
+      className="relative bg-white rounded-2xl p-6 overflow-hidden animate-fade-in-up transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
     >
       {/* Top accent stripe */}
       <div

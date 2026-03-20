@@ -200,7 +200,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 animate-pulse" style={{ boxShadow: "var(--shadow-sm)" }}>
+              <div key={i} className="bg-white rounded-2xl p-6 animate-pulse shadow-[var(--shadow-sm)]">
                 <div className="h-4 bg-slate-200 rounded w-1/3 mb-4" />
                 <div className="h-3 bg-slate-100 rounded w-2/3 mb-2" />
                 <div className="h-3 bg-slate-100 rounded w-1/2" />
@@ -209,8 +209,7 @@ export default function Dashboard() {
           </div>
         ) : hierarchy.length === 0 ? (
           <div
-            className="bg-white rounded-2xl p-10 text-center"
-            style={{ boxShadow: "var(--shadow-sm)" }}
+            className="bg-white rounded-2xl p-10 text-center shadow-[var(--shadow-sm)]"
           >
             <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">🏠</span>
@@ -268,16 +267,14 @@ export default function Dashboard() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl cursor-default"
-          style={{ boxShadow: "var(--shadow-md)" }}
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5 transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
         >
           <div className="mb-2">
             <RentChart />
           </div>
         </div>
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl cursor-default"
-          style={{ boxShadow: "var(--shadow-md)" }}
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6 transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
         >
           <div className="mb-2">
             <PaymentChart />
