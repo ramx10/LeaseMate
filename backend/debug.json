@@ -1,0 +1,24 @@
+{
+  "rooms": [
+    {
+      "id": 13,
+      "room_number": "101",
+      "total_rent": 12000,
+      "max_tenants": 3,
+      "property_id": 12,
+      "property_name": "Sunshine"
+    }
+  ],
+  "tenants": [
+    {
+      "id": 6,
+      "tenant_name": "user",
+      "tenant_email": "user@gmail.com",
+      "phone": "8605755100",
+      "deposit": 5000,
+      "join_date": "2026-03-18T18:30:00.000Z",
+      "room_number": "101",
+      "property_name": "Sunshine"
+    }
+  ]
+}
