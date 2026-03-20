@@ -32,15 +32,27 @@ export default function PaymentChart() {
 
   const options = {
     responsive: true,
-    cutout: "70%",
+    maintainAspectRatio: false,
+    cutout: "75%",
     plugins: {
       legend: {
         position: "bottom",
-        labels: { color: "#6b7280", font: { size: 12 }, padding: 16 },
+        labels: { color: "#6b7280", font: { size: 12, family: "'Inter', sans-serif", weight: '500' }, padding: 20, usePointStyle: true, pointStyle: 'circle' },
       },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        padding: 12,
+        bodyFont: { size: 14, family: "'Inter', sans-serif" },
+        callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} Tenants` },
+        cornerRadius: 8,
+      }
     },
   };
 
   if (!chartData) return <div className="text-sm text-gray-400 text-center py-10">Loading chart…</div>;
-  return <Doughnut data={chartData} options={options} />;
+  return (
+    <div className="w-full relative flex justify-center" style={{ height: '300px' }}>
+      <Doughnut data={chartData} options={options} />
+    </div>
+  );
 }
