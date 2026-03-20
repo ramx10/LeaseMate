@@ -1,9 +1,11 @@
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar({ title = "Dashboard" }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchFocused, setSearchFocused] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -27,6 +29,19 @@ export default function Navbar({ title = "Dashboard" }) {
       };
     }
   }, [user]);
+
+  const handleNotificationClick = (notif) => {
+    setShowNotifications(false);
+    if (notif.type === "new_issue" || notif.type === "issue_update") {
+      navigate("/issues");
+    } else if (notif.type === "rent_due") {
+      if (user?.role === "Tenant") {
+        navigate("/tenant-dashboard");
+      } else {
+        navigate("/ledger");
+      }
+    }
+  };
 
   return (
     <header
@@ -107,16 +122,21 @@ export default function Navbar({ title = "Dashboard" }) {
                   <p className="text-xs text-slate-400 text-center py-4">No new notifications</p>
                 ) : (
                   notifications.map((notif) => (
-                    <div key={notif.id} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${notif.level === 'Medium' ? 'hover:bg-amber-50 hover:border-amber-100' : 'hover:bg-rose-50 hover:border-rose-100'}`}>
-                      <div className={`w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center mt-0.5 ${notif.level === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}`}>
-                        <span className="text-sm">⚠</span>
+                    <div 
+                      key={notif.id} 
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${notif.level === 'Medium' ? 'hover:bg-amber-50 hover:border-amber-100' : (notif.level === 'Normal' ? 'hover:bg-emerald-50 hover:border-emerald-100' : 'hover:bg-rose-50 hover:border-rose-100')}`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center mt-0.5 ${notif.level === 'Medium' ? 'bg-amber-100 text-amber-600' : (notif.level === 'Normal' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600')}`}>
+                        <span className="text-sm">{notif.level === 'Normal' ? '✔' : '⚠'}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[13px] font-bold tracking-tight ${notif.level === 'Medium' ? 'text-amber-700' : 'text-slate-800'}`}>{notif.title}</p>
+                        <p className={`text-[13px] font-bold tracking-tight ${notif.level === 'Medium' ? 'text-amber-700' : (notif.level === 'Normal' ? 'text-emerald-700' : 'text-slate-800')}`}>{notif.title}</p>
                         <div className="mt-1 space-y-0.5 text-[11px] text-slate-600">
                           <p><span className="font-medium text-slate-400">Tenant:</span> <span className="font-semibold text-slate-700">{notif.tenantName}</span></p>
                           <p><span className="font-medium text-slate-400">Room:</span> <span className="font-semibold text-slate-700">{notif.roomNumber}</span></p>
-                          <p><span className="font-medium text-slate-400">Amount:</span> <span className={`${notif.level === 'Medium' ? 'text-amber-600' : 'text-rose-600'} font-bold`}>₹{notif.amount}</span></p>
+                          {notif.amount !== null && <p><span className="font-medium text-slate-400">Amount:</span> <span className={`${notif.level === 'Medium' ? 'text-amber-600' : 'text-rose-600'} font-bold`}>₹{notif.amount}</span></p>}
+                          {notif.description && <p><span className="font-medium text-slate-400">Detail:</span> <span className="font-semibold text-slate-700">{notif.description}</span></p>}
                         </div>
                         <p className="text-[10px] text-slate-400 mt-2">{notif.time}</p>
                       </div>
