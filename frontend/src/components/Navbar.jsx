@@ -1,10 +1,32 @@
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function Navbar({ title = "Dashboard" }) {
   const { user } = useAuth();
   const [searchFocused, setSearchFocused] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/notifications/rent-due");
+        if (isMounted) setNotifications(res.data);
+      } catch (err) {
+        console.log("Error fetching notifications:", err);
+      }
+    };
+    if (user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+      };
+    }
+  }, [user]);
 
   return (
     <header
@@ -61,31 +83,46 @@ export default function Navbar({ title = "Dashboard" }) {
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
             {/* Unread indicator */}
-            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full" style={{ boxShadow: "0 0 6px rgba(244,63,94,0.5)" }} />
+            {notifications.length > 0 && (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full" style={{ boxShadow: "0 0 6px rgba(244,63,94,0.5)" }} />
+            )}
           </button>
 
           {/* Notification dropdown */}
           {showNotifications && (
             <div
-              className="absolute right-0 top-12 w-72 bg-white rounded-xl shadow-xl border border-slate-200/60 p-4 animate-fade-in"
+              className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-slate-200/60 p-4 animate-fade-in z-50 max-h-96 overflow-y-auto"
               style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.1)" }}
             >
-              <p className="text-sm font-semibold text-slate-700 mb-3">Notifications</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-slate-700">Notifications</p>
+                {notifications.length > 0 && (
+                  <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-medium">
+                    {notifications.length} New
+                  </span>
+                )}
+              </div>
               <div className="space-y-2">
-                <div className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 mt-1.5 bg-indigo-500 rounded-full flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-slate-600">3 pending rent payments for March</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 mt-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-slate-600">New tenant registered to Room 102</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">5 hours ago</p>
-                  </div>
-                </div>
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-4">No new notifications</p>
+                ) : (
+                  notifications.map((notif) => (
+                    <div key={notif.id} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${notif.level === 'Medium' ? 'hover:bg-amber-50 hover:border-amber-100' : 'hover:bg-rose-50 hover:border-rose-100'}`}>
+                      <div className={`w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center mt-0.5 ${notif.level === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}`}>
+                        <span className="text-sm">⚠</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[13px] font-bold tracking-tight ${notif.level === 'Medium' ? 'text-amber-700' : 'text-slate-800'}`}>{notif.title}</p>
+                        <div className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                          <p><span className="font-medium text-slate-400">Tenant:</span> <span className="font-semibold text-slate-700">{notif.tenantName}</span></p>
+                          <p><span className="font-medium text-slate-400">Room:</span> <span className="font-semibold text-slate-700">{notif.roomNumber}</span></p>
+                          <p><span className="font-medium text-slate-400">Amount:</span> <span className={`${notif.level === 'Medium' ? 'text-amber-600' : 'text-rose-600'} font-bold`}>₹{notif.amount}</span></p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-2">{notif.time}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
