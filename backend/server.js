@@ -11,6 +11,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const tenantDashboardRoutes = require("./routes/tenantDashboardRoutes");
 const userRoutes = require("./routes/userRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const issueRoutes = require("./routes/issueRoutes");
 const { verifyToken } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -44,6 +45,9 @@ app.use("/api/users", verifyToken, userRoutes);
 
 /* NOTIFICATION ROUTES */
 app.use("/api/notifications", verifyToken, notificationRoutes);
+
+/* ISSUES ROUTES */
+app.use("/api/issues", verifyToken, issueRoutes);
 
 /* HOME ROUTE */
 app.get("/", (req, res) => {
