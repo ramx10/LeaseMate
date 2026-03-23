@@ -140,15 +140,13 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
         <div className="delay-1 animate-fade-in-up">
           <StatsCard
             title="Total Properties"
             value={stats.totalProperties}
             icon="🏠"
             gradient="linear-gradient(135deg, #6366f1, #818cf8)"
-            trend={12}
-            trendLabel="vs last month"
           />
         </div>
         <div className="delay-2 animate-fade-in-up">
@@ -157,18 +155,14 @@ export default function Dashboard() {
             value={stats.totalTenants}
             icon="👤"
             gradient="linear-gradient(135deg, #3b82f6, #60a5fa)"
-            trend={8}
-            trendLabel="vs last month"
           />
         </div>
         <div className="delay-3 animate-fade-in-up">
           <StatsCard
-            title="Paid Rent"
+            title="Rent Collected"
             value={paidRent}
             icon="💰"
             gradient="linear-gradient(135deg, #10b981, #34d399)"
-            trend={5}
-            trendLabel="vs last month"
           />
         </div>
         <div className="delay-4 animate-fade-in-up">
@@ -177,8 +171,22 @@ export default function Dashboard() {
             value={"₹ " + (stats.pending_rent || 0)}
             icon="⏳"
             gradient="linear-gradient(135deg, #f59e0b, #fbbf24)"
-            trend={-3}
-            trendLabel="vs last month"
+          />
+        </div>
+        <div className="delay-5 animate-fade-in-up">
+          <StatsCard
+            title="Electricity Due"
+            value={"₹ " + (stats.electricity_due || 0)}
+            icon="⚡"
+            gradient="linear-gradient(135deg, #ef4444, #f87171)"
+          />
+        </div>
+        <div className="delay-6 animate-fade-in-up">
+          <StatsCard
+            title="Open Issues"
+            value={stats.open_issues || 0}
+            icon="🔧"
+            gradient="linear-gradient(135deg, #e11d48, #fb7185)"
           />
         </div>
       </div>

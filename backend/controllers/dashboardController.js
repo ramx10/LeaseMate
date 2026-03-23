@@ -44,12 +44,32 @@ exports.getDashboard = async (req, res) => {
       WHERE ledger.paid = true AND properties.owner_id = $1
     `, [owner_id]);
 
+    const electricityDue = await pool.query(`
+      SELECT COALESCE(SUM(ledger.electricity), 0) AS electricity_due
+      FROM ledger
+      JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE ledger.paid = false AND properties.owner_id = $1
+    `, [owner_id]);
+
+    const openIssues = await pool.query(`
+      SELECT COUNT(*) AS open_issues
+      FROM issues
+      JOIN tenants ON issues.tenant_id = tenants.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE issues.status != 'Resolved' AND properties.owner_id = $1
+    `, [owner_id]);
+
     res.json({
       totalTenants: tenants.rows[0].count,
       totalProperties: properties.rows[0].count,
       totalRooms: rooms.rows[0].count,
       pending_rent: pending.rows[0].pending_rent,
-      paid_rent: paid.rows[0].paid_rent
+      paid_rent: paid.rows[0].paid_rent,
+      electricity_due: electricityDue.rows[0].electricity_due,
+      open_issues: openIssues.rows[0].open_issues
     });
 
   } catch (error) {
