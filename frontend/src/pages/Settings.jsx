@@ -163,11 +163,9 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">Full Name</label>
-                    <input
-                      type="text"
-                      defaultValue={profile?.name || ""}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-all"
-                    />
+                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold shadow-sm">
+                      {profile?.name || ""}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>

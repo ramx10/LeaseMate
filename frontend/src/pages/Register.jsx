@@ -130,10 +130,10 @@ export default function Register() {
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
             style={{ background: "linear-gradient(135deg, #6366f1, #3b82f6)", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
             <svg width="36" height="36" viewBox="0 0 64 64" fill="none">
-              <rect x="8" y="28" width="36" height="30" rx="4" stroke="white" strokeWidth="4.5" fill="none"/>
-              <path d="M4 30L26 8L48 30" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <path d="M38 14L48 24" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
-              <polyline points="16,44 24,52 38,34" stroke="rgba(255,255,255,0.8)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <rect x="8" y="28" width="36" height="30" rx="4" stroke="white" strokeWidth="4.5" fill="none" />
+              <path d="M4 30L26 8L48 30" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M38 14L48 24" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <polyline points="16,44 24,52 38,34" stroke="rgba(255,255,255,0.8)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
           </div>
           <h1 className="text-white text-2xl font-bold">Create Account</h1>
@@ -147,7 +147,7 @@ export default function Register() {
               type="text"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               style={inputStyle}
-              placeholder="John Doe"
+              placeholder="Username"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />

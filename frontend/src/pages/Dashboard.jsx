@@ -115,27 +115,42 @@ export default function Dashboard() {
     <MainLayout title="Dashboard">
       {/* Welcome Banner */}
       <div
-        className="rounded-2xl p-6 lg:p-8 mb-8 text-white relative overflow-hidden animate-fade-in-up"
+        className="rounded-2xl p-6 lg:p-8 mb-8 text-white relative overflow-hidden animate-fade-in-up transition-all duration-500 hover:shadow-[0_20px_50px_rgba(99,102,241,0.3)] group cursor-default"
         style={{
           background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #3b82f6 100%)",
         }}
       >
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 transition-transform duration-700 group-hover:scale-125"
           style={{ background: "radial-gradient(circle, white 0%, transparent 70%)", transform: "translate(30%, -30%)" }}
         />
-        <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full opacity-[0.06]"
+        <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full opacity-[0.06] transition-transform duration-700 group-hover:scale-150"
           style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }}
         />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">👋</span>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Welcome back, Owner</h1>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="transition-transform duration-300 group-hover:translate-x-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl animate-bounce-slow">👋</span>
+              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Welcome back, Owner</h1>
+            </div>
+            <p className="text-indigo-100 text-sm lg:text-base mt-2 max-w-lg leading-relaxed">
+              Experience the future of property management. Your portfolio is performing excellently today.
+            </p>
           </div>
-          <p className="text-indigo-200 text-sm lg:text-base mt-1 max-w-lg">
-            Here's your property overview for today. Manage your properties, rooms, and tenant payments all in one place.
-          </p>
+          
+          {/* Quick Stats in Banner */}
+          <div className="hidden lg:flex items-center gap-8 pr-4">
+            <div className="text-center">
+              <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">Active Rooms</p>
+              <p className="text-2xl font-bold">{stats.totalRooms || 0}</p>
+            </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="text-center">
+              <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">Total Residents</p>
+              <p className="text-2xl font-bold">{stats.totalTenants || 0}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -229,9 +244,9 @@ export default function Dashboard() {
           hierarchy.map((property, propIdx) => (
             <div key={property.id} className={`mb-6 animate-fade-in-up delay-${propIdx + 1}`}>
               {/* Property header */}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-4 group/prop cursor-default transition-all duration-300 hover:translate-x-1">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover/prop:scale-110"
                   style={{
                     background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                     boxShadow: "0 3px 8px rgba(99,102,241,0.3)",
@@ -275,14 +290,14 @@ export default function Dashboard() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5 transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-5 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
         >
           <div className="mb-2">
             <RentChart />
           </div>
         </div>
         <div
-          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6 transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
+          className="bg-white rounded-2xl p-6 animate-fade-in-up delay-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
         >
           <div className="mb-2">
             <PaymentChart />
