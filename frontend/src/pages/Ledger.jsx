@@ -10,6 +10,10 @@ export default function Ledger() {
   const [month, setMonth] = useState("");
   const [units, setUnits] = useState("");
 
+  const [generateMonth, setGenerateMonth] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [genMessage, setGenMessage] = useState(null);
+
   const fetchLedger = () => {
     axios
       .get("http://localhost:5000/api/ledger")
@@ -28,6 +32,25 @@ export default function Ledger() {
     fetchLedger();
     fetchTenants();
   }, []);
+
+  const generateBills = async () => {
+    if (!generateMonth) return;
+    setGenerating(true);
+    setGenMessage(null);
+    try {
+      const [year, mon] = generateMonth.split("-");
+      const formattedMonth = new Date(year, mon - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+      const res = await axios.post("http://localhost:5000/api/ledger/generate", {
+        month: formattedMonth,
+      });
+      setGenMessage({ type: "success", text: res.data.message });
+      fetchLedger();
+    } catch (error) {
+      setGenMessage({ type: "error", text: "Failed to generate bills" });
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const addLedger = async () => {
     try {
@@ -69,6 +92,35 @@ export default function Ledger() {
           <span className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
             ⏳ Pending: {ledger.filter((l) => !l.paid).length}
           </span>
+        </div>
+      </div>
+
+      {/* Generate Bills Card */}
+      <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
+        <h2 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">⚡ Generate Monthly Bills</h2>
+        <p className="text-xs text-gray-400 mb-3">Auto-create ledger entries for all tenants. Rent is calculated automatically, electricity defaults to ₹0.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            type="month"
+            value={generateMonth}
+            onChange={(e) => setGenerateMonth(e.target.value)}
+          />
+          <button
+            onClick={generateBills}
+            disabled={generating || !generateMonth}
+            className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+          >
+            {generating ? "Generating..." : "🚀 Generate Bills"}
+          </button>
+          {genMessage && (
+            <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${
+              genMessage.type === "success" ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
+            }`}>
+              {genMessage.text}
+            </span>
+          )}
         </div>
       </div>
 

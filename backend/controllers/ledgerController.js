@@ -62,10 +62,12 @@ exports.getLedger = async (req, res) => {
         ledger.total,
         ledger.paid,
         tenants.phone,
+        users.name AS tenant_name,
         rooms.room_number,
         properties.property_name
       FROM ledger
       JOIN tenants ON ledger.tenant_id = tenants.id
+      JOIN users ON tenants.user_id = users.id
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
       WHERE properties.owner_id = $1
@@ -112,5 +114,81 @@ exports.markPaid = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Error updating payment");
+  }
+};
+
+
+/* GENERATE MONTHLY LEDGER FOR A ROOM */
+exports.generateMonthlyLedger = async (req, res) => {
+  try {
+    const owner_id = req.user.id;
+    const { month, electricity, room_id } = req.body;
+
+    if (!month || !room_id) {
+      return res.status(400).json({ error: "Month and Room are required" });
+    }
+
+    // Verify room belongs to owner
+    const roomCheck = await pool.query(`
+      SELECT rooms.id, rooms.total_rent, rooms.max_tenants
+      FROM rooms
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE rooms.id = $1 AND properties.owner_id = $2
+    `, [room_id, owner_id]);
+
+    if (roomCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Room not found or unauthorized" });
+    }
+
+    // Get all tenants in this room
+    const tenantsResult = await pool.query(
+      "SELECT id AS tenant_id FROM tenants WHERE room_id = $1",
+      [room_id]
+    );
+
+    if (tenantsResult.rows.length === 0) {
+      return res.json({ message: "No tenants in this room", created: 0, skipped: 0 });
+    }
+
+    const tenantCount = tenantsResult.rows.length;
+    const totalRent = Number(roomCheck.rows[0].total_rent);
+    const totalElectricity = Number(electricity) || 0;
+
+    const rentPerTenant = Math.floor(totalRent / tenantCount);
+    const elecPerTenant = Math.floor(totalElectricity / tenantCount);
+    const totalPerTenant = rentPerTenant + elecPerTenant;
+
+    let created = 0;
+    let skipped = 0;
+
+    for (const tenant of tenantsResult.rows) {
+      // Check if entry already exists for this tenant+month
+      const existing = await pool.query(
+        "SELECT id FROM ledger WHERE tenant_id = $1 AND month = $2",
+        [tenant.tenant_id, month]
+      );
+
+      if (existing.rows.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      await pool.query(
+        `INSERT INTO ledger (tenant_id, month, rent, electricity, total)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [tenant.tenant_id, month, rentPerTenant, elecPerTenant, totalPerTenant]
+      );
+
+      created++;
+    }
+
+    res.json({
+      message: `Generated ${created} bill${created !== 1 ? 's' : ''}${skipped > 0 ? `, skipped ${skipped} (already exist)` : ''}`,
+      created,
+      skipped,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error generating ledger entries");
   }
 };
