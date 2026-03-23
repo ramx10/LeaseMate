@@ -5,12 +5,15 @@ import MainLayout from "../layout/MainLayout";
 export default function Ledger() {
   const [ledger, setLedger] = useState([]);
   const [tenants, setTenants] = useState([]);
+  const [rooms, setRooms] = useState([]);
 
   const [tenantId, setTenantId] = useState("");
   const [month, setMonth] = useState("");
   const [units, setUnits] = useState("");
 
+  const [genRoomId, setGenRoomId] = useState("");
   const [generateMonth, setGenerateMonth] = useState("");
+  const [genElectricity, setGenElectricity] = useState("");
   const [generating, setGenerating] = useState(false);
   const [genMessage, setGenMessage] = useState(null);
 
@@ -28,13 +31,21 @@ export default function Ledger() {
       .catch((err) => console.log(err));
   };
 
+  const fetchRooms = () => {
+    axios
+      .get("http://localhost:5000/api/rooms")
+      .then((res) => setRooms(res.data))
+      .catch((err) => console.log(err));
+  };
+
   useEffect(() => {
     fetchLedger();
     fetchTenants();
+    fetchRooms();
   }, []);
 
   const generateBills = async () => {
-    if (!generateMonth) return;
+    if (!generateMonth || !genRoomId) return;
     setGenerating(true);
     setGenMessage(null);
     try {
@@ -42,11 +53,13 @@ export default function Ledger() {
       const formattedMonth = new Date(year, mon - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
       const res = await axios.post("http://localhost:5000/api/ledger/generate", {
         month: formattedMonth,
+        electricity: genElectricity,
+        room_id: genRoomId,
       });
       setGenMessage({ type: "success", text: res.data.message });
       fetchLedger();
     } catch (error) {
-      setGenMessage({ type: "error", text: "Failed to generate bills" });
+      setGenMessage({ type: "error", text: error.response?.data?.error || "Failed to generate bills" });
     } finally {
       setGenerating(false);
     }
@@ -98,17 +111,36 @@ export default function Ledger() {
       {/* Generate Bills Card */}
       <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: "0 4px 20px rgba(99,102,241,0.10)" }}>
         <h2 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">⚡ Generate Monthly Bills</h2>
-        <p className="text-xs text-gray-400 mb-3">Auto-create ledger entries for all tenants. Rent is calculated automatically, electricity defaults to ₹0.</p>
+        <p className="text-xs text-gray-400 mb-3">Select a room, month, and electricity cost. Rent & electricity are split equally among all tenants in the room.</p>
         <div className="flex flex-wrap items-center gap-3">
+          <select
+            className="flex-1 min-w-44 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+            value={genRoomId}
+            onChange={(e) => setGenRoomId(e.target.value)}
+          >
+            <option value="">Select Room</option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.property_name} — Room {r.room_number}
+              </option>
+            ))}
+          </select>
           <input
             className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             type="month"
             value={generateMonth}
             onChange={(e) => setGenerateMonth(e.target.value)}
           />
+          <input
+            className="flex-1 min-w-36 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            type="number"
+            placeholder="Total Electricity (₹)"
+            value={genElectricity}
+            onChange={(e) => setGenElectricity(e.target.value)}
+          />
           <button
             onClick={generateBills}
-            disabled={generating || !generateMonth}
+            disabled={generating || !generateMonth || !genRoomId}
             className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
           >
@@ -170,6 +202,7 @@ export default function Ledger() {
             <tr style={{ background: "linear-gradient(135deg, #10b981, #3b82f6)" }}>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Property</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Room</th>
+              <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Tenant</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Month</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Rent</th>
               <th className="px-5 py-3.5 text-left text-white text-sm font-semibold">Electricity</th>
@@ -181,7 +214,7 @@ export default function Ledger() {
           <tbody>
             {ledger.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-gray-400 text-sm">No ledger entries found</td>
+                <td colSpan={9} className="text-center py-12 text-gray-400 text-sm">No ledger entries found</td>
               </tr>
             ) : (
               ledger.map((l, i) => (
@@ -191,6 +224,7 @@ export default function Ledger() {
                 >
                   <td className="px-5 py-3.5 text-gray-600 text-sm">{l.property_name}</td>
                   <td className="px-5 py-3.5 font-semibold text-gray-700 text-sm">{l.room_number}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm">{l.tenant_name || l.phone}</td>
                   <td className="px-5 py-3.5 text-gray-600 text-sm">{l.month}</td>
                   <td className="px-5 py-3.5 text-gray-700 text-sm">₹ {l.rent}</td>
                   <td className="px-5 py-3.5 text-gray-700 text-sm">₹ {l.electricity}</td>
