@@ -159,7 +159,7 @@ export default function Register() {
               type="email"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               style={inputStyle}
-              placeholder="owner@example.com"
+              placeholder="Enter gmail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -171,7 +171,7 @@ export default function Register() {
               type="password"
               className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               style={inputStyle}
-              placeholder="••••••••"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
