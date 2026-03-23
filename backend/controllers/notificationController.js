@@ -1,156 +1,66 @@
 const pool = require("../db");
 
+/* GET NOTIFICATIONS FOR LOGGED IN USER */
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    const role = req.user.role; 
+    
+    // Fetch only unread notifications, limit to 20
+    const result = await pool.query(
+      "SELECT * FROM notifications WHERE user_id = $1 AND is_read = false ORDER BY created_at DESC LIMIT 20",
+      [userId]
+    );
 
-    let notifications = [];
-
-    if (role === "Tenant") {
-        // Get tenant's own id
-        const tenantQuery = await pool.query("SELECT id FROM tenants WHERE user_id = $1", [userId]);
-        if (tenantQuery.rows.length === 0) return res.json([]);
-        const tenantId = tenantQuery.rows[0].id;
-
-        const result = await pool.query(`
-          SELECT 
-            users.name AS tenant_name,
-            rooms.room_number,
-            ledger.total AS amount_due,
-            ledger.month,
-            ledger.id AS ledger_id
-          FROM ledger
-          JOIN tenants ON ledger.tenant_id = tenants.id
-          JOIN users ON tenants.user_id = users.id
-          JOIN rooms ON tenants.room_id = rooms.id
-          WHERE ledger.paid = false AND ledger.tenant_id = $1
-          ORDER BY ledger.id DESC
-          LIMIT 10
-        `, [tenantId]);
-
-        notifications = processNotifications(result.rows, role);
-
-        // Fetch tenant issue updates (In Progress / Resolved)
-        const tenantIssues = await pool.query(`
-          SELECT issues.id, issues.category, issues.status, rooms.room_number
-          FROM issues
-          JOIN tenants ON issues.tenant_id = tenants.id
-          JOIN rooms ON tenants.room_id = rooms.id
-          WHERE issues.tenant_id = $1 AND issues.status != 'Pending'
-          ORDER BY issues.id DESC
-          LIMIT 5
-        `, [tenantId]);
-
-        const tenantIssueNotifs = tenantIssues.rows.map(row => ({
-          id: `issue_${row.id}`,
-          type: "issue_update",
-          tenantName: "You",
-          roomNumber: row.room_number,
-          amount: null,
-          month: "Issue",
-          title: `Issue ${row.status}`,
-          description: row.category,
-          time: "Update",
-          level: row.status === "Resolved" ? "Normal" : "Medium"
-        }));
-
-        notifications.push(...tenantIssueNotifs);
-
-    } else {
-        // Owner (Rent notifications omitted for Owners by request)
-
-        // Fetch owner new issues (Pending)
-        const pendingIssues = await pool.query(`
-          SELECT issues.id, issues.category, users.name as tenant_name, rooms.room_number
-          FROM issues
-          JOIN tenants ON issues.tenant_id = tenants.id
-          JOIN users ON tenants.user_id = users.id
-          JOIN rooms ON tenants.room_id = rooms.id
-          JOIN properties ON rooms.property_id = properties.id
-          WHERE issues.status = 'Pending' AND properties.owner_id = $1
-          ORDER BY issues.id DESC
-          LIMIT 5
-        `, [userId]);
-
-        const ownerIssueNotifs = pendingIssues.rows.map(row => ({
-          id: `issue_${row.id}`,
-          type: "new_issue",
-          tenantName: row.tenant_name || "Unknown",
-          roomNumber: row.room_number,
-          amount: null,
-          month: "Issue",
-          title: "New Issue Reported",
-          description: row.category,
-          time: "Pending",
-          level: "Medium"
-        }));
-
-        notifications.push(...ownerIssueNotifs);
-    }
-
-    res.json(notifications);
+    res.json(result.rows);
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).send("Error fetching notifications");
   }
 };
 
-function processNotifications(rows, role) {
-  const validNotifications = [];
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-  const currentDay = now.getDate();
+/* MARK NOTIFICATION AS READ */
+exports.markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
 
-  for (const row of rows) {
-    // row.month is typically like "April 2026"
-    const ledgerDate = new Date(row.month + " 1");
-    // check if valid date
-    if (isNaN(ledgerDate.getTime())) continue;
+    await pool.query(
+      "UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2",
+      [id, userId]
+    );
 
-    const ledgerYear = ledgerDate.getFullYear();
-    const ledgerMonth = ledgerDate.getMonth();
-    
-    const monthDiff = (currentYear - ledgerYear) * 12 + (currentMonth - ledgerMonth);
-
-    let rowAlertLevel = "Normal";
-    let title = "Rent Due";
-    let showNotification = true;
-
-    if (monthDiff < 0) {
-       // Future month: don't show as a notification (not yet due)
-       showNotification = false; 
-    } else if (monthDiff === 0) {
-       // Current month
-       if (currentDay <= 5) {
-          showNotification = false; // Not strict due yet, usually due 1st-5th
-       } else if (currentDay > 10) {
-          rowAlertLevel = "Danger";
-          title = "URGENT: Rent Overdue";
-       } else {
-          rowAlertLevel = "Medium";
-          title = "Reminder: Rent is Due";
-       }
-    } else {
-       // Past months -> ALWAYS overdue
-       rowAlertLevel = "Danger";
-       title = "URGENT: Rent Overdue";
-    }
-
-    if (showNotification) {
-       validNotifications.push({
-          id: row.ledger_id,
-          type: "rent_due",
-          tenantName: row.tenant_name || (role === "Tenant" ? "You" : "Unknown"),
-          roomNumber: row.room_number,
-          amount: Math.round(row.amount_due),
-          month: row.month,
-          title: title,
-          time: "Pending",
-          level: rowAlertLevel
-       });
-    }
+    res.json({ message: "Notification marked as read" });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).send("Error updating notification");
   }
-  return validNotifications;
-}
+};
+
+/* CLEAR ALL NOTIFICATIONS */
+exports.clearAll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await pool.query(
+      "UPDATE notifications SET is_read = true WHERE user_id = $1",
+      [userId]
+    );
+
+    res.json({ message: "All notifications cleared" });
+  } catch (error) {
+    console.error("Error clearing notifications:", error);
+    res.status(500).send("Error clearing notifications");
+  }
+};
+
+/* HELPER TO CREATE NOTIFICATION (Internal use) */
+exports.createNotification = async (userId, type, title, message) => {
+  try {
+    await pool.query(
+      "INSERT INTO notifications (user_id, type, title, message) VALUES ($1,$2,$3,$4)",
+      [userId, type, title, message]
+    );
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+};

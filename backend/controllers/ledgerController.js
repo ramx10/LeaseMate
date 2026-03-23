@@ -1,4 +1,5 @@
 const pool = require("../db");
+const { createNotification } = require("./notificationController");
 
 /* ADD LEDGER ENTRY */
 exports.addLedger = async (req, res) => {
@@ -10,7 +11,7 @@ exports.addLedger = async (req, res) => {
 
     // get room info and verify ownership
     const room = await pool.query(`
-      SELECT rooms.total_rent, rooms.max_tenants
+      SELECT rooms.total_rent, rooms.max_tenants, tenants.user_id as tenant_user_id
       FROM tenants
       JOIN rooms ON tenants.room_id = rooms.id
       JOIN properties ON rooms.property_id = properties.id
@@ -21,8 +22,9 @@ exports.addLedger = async (req, res) => {
       return res.status(404).send("Tenant not found or unauthorized");
     }
 
-    const totalRent = Number(room.rows[0].total_rent);
-    const maxTenants = Number(room.rows[0].max_tenants);
+    const { total_rent, max_tenants, tenant_user_id } = room.rows[0];
+    const totalRent = Number(total_rent);
+    const maxTenants = Number(max_tenants);
 
     const rent = Math.floor(totalRent / maxTenants);
     const electricityCost = Number(electricity) || 0;
@@ -35,6 +37,14 @@ exports.addLedger = async (req, res) => {
        VALUES ($1,$2,$3,$4,$5)
        RETURNING *`,
       [tenant_id, month, rent, electricityCost, total]
+    );
+
+    // Notify Tenant
+    await createNotification(
+      tenant_user_id,
+      "rent_due",
+      `Rent Bill Generated: ${month}`,
+      `A new bill of ₹${total} has been generated for ${month}.`
     );
 
     res.json(ledger.rows[0]);
@@ -109,6 +119,23 @@ exports.markPaid = async (req, res) => {
       [id]
     );
 
+    // Get tenant's user_id and month for notification
+    const tenantInfo = await pool.query(`
+      SELECT tenants.user_id, ledger.month 
+      FROM ledger 
+      JOIN tenants ON ledger.tenant_id = tenants.id 
+      WHERE ledger.id = $1
+    `, [id]);
+
+    if (tenantInfo.rows.length > 0) {
+      await createNotification(
+        tenantInfo.rows[0].user_id,
+        "payment_received",
+        "Payment Received",
+        `Your payment for ${tenantInfo.rows[0].month} has been marked as paid. Thank you!`
+      );
+    }
+
     res.json("Payment marked as paid");
 
   } catch (error) {
@@ -178,6 +205,17 @@ exports.generateMonthlyLedger = async (req, res) => {
          VALUES ($1, $2, $3, $4, $5)`,
         [tenant.tenant_id, month, rentPerTenant, elecPerTenant, totalPerTenant]
       );
+
+      // Get tenant's user_id for notification
+      const tUser = await pool.query("SELECT user_id FROM tenants WHERE id = $1", [tenant.tenant_id]);
+      if (tUser.rows.length > 0) {
+        await createNotification(
+          tUser.rows[0].user_id,
+          "rent_due",
+          `Rent Bill Generated: ${month}`,
+          `A new bill of ₹${totalPerTenant} has been generated for ${month}.`
+        );
+      }
 
       created++;
     }

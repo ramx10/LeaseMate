@@ -22,7 +22,7 @@ export default function Navbar({ title = "Dashboard" }) {
     };
     if (user) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
+      const interval = setInterval(fetchNotifications, 10000); // Polling every 10s
       return () => {
         isMounted = false;
         clearInterval(interval);
@@ -30,8 +30,24 @@ export default function Navbar({ title = "Dashboard" }) {
     }
   }, [user]);
 
-  const handleNotificationClick = (notif) => {
+  const markAsRead = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await axios.put(`http://localhost:5000/api/notifications/mark-read/${id}`);
+      setNotifications(notifications.filter(n => n.id !== id));
+    } catch (err) {
+      console.error("Error marking as read:", err);
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
     setShowNotifications(false);
+    // Mark as read when clicked
+    try {
+      await axios.put(`http://localhost:5000/api/notifications/mark-read/${notif.id}`);
+      setNotifications(notifications.filter(n => n.id !== notif.id));
+    } catch (err) { console.log(err); }
+
     if (notif.type === "new_issue" || notif.type === "issue_update") {
       navigate("/issues");
     } else if (notif.type === "rent_due") {
@@ -41,6 +57,12 @@ export default function Navbar({ title = "Dashboard" }) {
         navigate("/ledger");
       }
     }
+  };
+
+  const getLevel = (type) => {
+    if (type === 'rent_due') return 'Danger';
+    if (type === 'new_issue') return 'Medium';
+    return 'Normal';
   };
 
   return (
@@ -112,36 +134,53 @@ export default function Navbar({ title = "Dashboard" }) {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-semibold text-slate-700">Notifications</p>
                 {notifications.length > 0 && (
-                  <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-medium">
-                    {notifications.length} New
-                  </span>
+                  <button 
+                    onClick={async () => {
+                      await axios.post("http://localhost:5000/api/notifications/clear-all");
+                      setNotifications([]);
+                    }}
+                    className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold uppercase tracking-wider"
+                  >
+                    Clear All
+                  </button>
                 )}
               </div>
               <div className="space-y-2">
                 {notifications.length === 0 ? (
                   <p className="text-xs text-slate-400 text-center py-4">No new notifications</p>
                 ) : (
-                  notifications.map((notif) => (
-                    <div 
-                      key={notif.id} 
-                      onClick={() => handleNotificationClick(notif)}
-                      className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${notif.level === 'Medium' ? 'hover:bg-amber-50 hover:border-amber-100' : (notif.level === 'Normal' ? 'hover:bg-emerald-50 hover:border-emerald-100' : 'hover:bg-rose-50 hover:border-rose-100')}`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center mt-0.5 ${notif.level === 'Medium' ? 'bg-amber-100 text-amber-600' : (notif.level === 'Normal' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600')}`}>
-                        <span className="text-sm">{notif.level === 'Normal' ? '✔' : '⚠'}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[13px] font-bold tracking-tight ${notif.level === 'Medium' ? 'text-amber-700' : (notif.level === 'Normal' ? 'text-emerald-700' : 'text-slate-800')}`}>{notif.title}</p>
-                        <div className="mt-1 space-y-0.5 text-[11px] text-slate-600">
-                          <p><span className="font-medium text-slate-400">Tenant:</span> <span className="font-semibold text-slate-700">{notif.tenantName}</span></p>
-                          <p><span className="font-medium text-slate-400">Room:</span> <span className="font-semibold text-slate-700">{notif.roomNumber}</span></p>
-                          {notif.amount !== null && <p><span className="font-medium text-slate-400">Amount:</span> <span className={`${notif.level === 'Medium' ? 'text-amber-600' : 'text-rose-600'} font-bold`}>₹{notif.amount}</span></p>}
-                          {notif.description && <p><span className="font-medium text-slate-400">Detail:</span> <span className="font-semibold text-slate-700">{notif.description}</span></p>}
+                  notifications.map((notif) => {
+                    const level = getLevel(notif.type);
+                    return (
+                      <div 
+                        key={notif.id} 
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${level === 'Medium' ? 'hover:bg-amber-50 hover:border-amber-100' : (level === 'Normal' ? 'hover:bg-emerald-50 hover:border-emerald-100' : 'hover:bg-rose-50 hover:border-rose-100')}`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center mt-0.5 ${level === 'Medium' ? 'bg-amber-100 text-amber-600' : (level === 'Normal' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600')}`}>
+                          <span className="text-sm">{level === 'Normal' ? '✔' : '⚠'}</span>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-2">{notif.time}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className={`text-[13px] font-bold tracking-tight ${level === 'Medium' ? 'text-amber-700' : (level === 'Normal' ? 'text-emerald-700' : 'text-slate-800')}`}>{notif.title}</p>
+                            <button 
+                              onClick={(e) => markAsRead(notif.id, e)}
+                              className="text-slate-300 hover:text-slate-500 p-1"
+                              title="Mark as read"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{notif.message}</p>
+                          <p className="text-[9px] text-slate-400 mt-2 font-medium">
+                            {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

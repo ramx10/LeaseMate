@@ -1,20 +1,37 @@
 const pool = require("../db");
+const { createNotification } = require("./notificationController");
 
 exports.reportIssue = async (req, res) => {
   try {
     const { category, description } = req.body;
     const userId = req.user.id;
 
-    // Get tenant_id
-    const tenantQuery = await pool.query("SELECT id FROM tenants WHERE user_id = $1", [userId]);
+    // Get tenant_id and property owner_id
+    const tenantQuery = await pool.query(`
+      SELECT tenants.id, properties.owner_id, users.name as tenant_name, rooms.room_number
+      FROM tenants 
+      JOIN users ON tenants.user_id = users.id
+      JOIN rooms ON tenants.room_id = rooms.id
+      JOIN properties ON rooms.property_id = properties.id
+      WHERE tenants.user_id = $1
+    `, [userId]);
+
     if (tenantQuery.rows.length === 0) {
       return res.status(404).send("Tenant not found");
     }
-    const tenantId = tenantQuery.rows[0].id;
+    const { id: tenantId, owner_id, tenant_name, room_number } = tenantQuery.rows[0];
 
     const newIssue = await pool.query(
       "INSERT INTO issues (tenant_id, category, description, status) VALUES ($1, $2, $3, 'Pending') RETURNING *",
       [tenantId, category, description]
+    );
+
+    // Notify Owner
+    await createNotification(
+      owner_id,
+      "new_issue",
+      "New Issue Reported",
+      `${tenant_name} (Room ${room_number}) reported a ${category} issue.`
     );
 
     res.json(newIssue.rows[0]);
@@ -74,10 +91,24 @@ exports.updateIssueStatus = async (req, res) => {
     const { status } = req.body;
     
     // Update issue
-    await pool.query(
+    const result = await pool.query(
       "UPDATE issues SET status = $1 WHERE id = $2 RETURNING *",
       [status, id]
     );
+
+    if (result.rows.length > 0) {
+      const issue = result.rows[0];
+      // Get tenant's user_id
+      const tenantQuery = await pool.query("SELECT user_id FROM tenants WHERE id = $1", [issue.tenant_id]);
+      if (tenantQuery.rows.length > 0) {
+        await createNotification(
+          tenantQuery.rows[0].user_id,
+          "issue_update",
+          `Issue ${status}`,
+          `Your ${issue.category} issue has been updated to ${status}.`
+        );
+      }
+    }
 
     res.json({ message: "Issue updated successfully" });
   } catch (error) {
