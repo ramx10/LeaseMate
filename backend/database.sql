@@ -74,5 +74,6 @@ CREATE TABLE notifications (
     title VARCHAR(200),
     message TEXT,
     is_read BOOLEAN DEFAULT FALSE,
+    effective_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

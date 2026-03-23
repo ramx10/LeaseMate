@@ -39,12 +39,14 @@ exports.addLedger = async (req, res) => {
       [tenant_id, month, rent, electricityCost, total]
     );
 
-    // Notify Tenant
+    // Notify Tenant - don't show before the 1st of the billing month
+    const effectiveDate = new Date(`${month} 1`);
     await createNotification(
       tenant_user_id,
       "rent_due",
       `Rent Bill Generated: ${month}`,
-      `A new bill of ₹${total} has been generated for ${month}.`
+      `A new bill of ₹${total} has been generated for ${month}.`,
+      isNaN(effectiveDate.getTime()) ? null : effectiveDate
     );
 
     res.json(ledger.rows[0]);
@@ -209,11 +211,13 @@ exports.generateMonthlyLedger = async (req, res) => {
       // Get tenant's user_id for notification
       const tUser = await pool.query("SELECT user_id FROM tenants WHERE id = $1", [tenant.tenant_id]);
       if (tUser.rows.length > 0) {
+        const effectiveDate = new Date(`${month} 1`);
         await createNotification(
           tUser.rows[0].user_id,
           "rent_due",
           `Rent Bill Generated: ${month}`,
-          `A new bill of ₹${totalPerTenant} has been generated for ${month}.`
+          `A new bill of ₹${totalPerTenant} has been generated for ${month}.`,
+          isNaN(effectiveDate.getTime()) ? null : effectiveDate
         );
       }
 

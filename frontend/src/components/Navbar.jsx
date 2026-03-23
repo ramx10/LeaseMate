@@ -60,7 +60,7 @@ export default function Navbar({ title = "Dashboard" }) {
   };
 
   const getLevel = (type) => {
-    if (type === 'rent_due') return 'Danger';
+    if (type === 'rent_due' || type === 'rent_overdue') return 'Danger';
     if (type === 'new_issue') return 'Medium';
     return 'Normal';
   };
