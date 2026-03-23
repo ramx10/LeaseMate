@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 export default function RentChart() {
   const [rawData, setRawData] = useState([]);
@@ -28,7 +30,7 @@ export default function RentChart() {
         .catch((err) => console.log(err));
     };
     fetchChart();
-    const interval = setInterval(fetchChart, 15000); // 15s polling
+    const interval = setInterval(fetchChart, 15000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -43,12 +45,16 @@ export default function RentChart() {
       {
         label: "Rent Collected (₹)",
         data: displayData.map((r) => r.total_rent),
-        backgroundColor: "rgba(99,102,241,0.7)",
-        hoverBackgroundColor: "rgba(99,102,241,1)",
         borderColor: "#6366f1",
-        borderWidth: 2,
-        borderRadius: 8,
-        borderSkipped: false,
+        backgroundColor: "rgba(99,102,241,0.08)",
+        pointBackgroundColor: "#6366f1",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.4,
+        fill: true,
+        borderWidth: 2.5,
       },
     ],
   } : null;
@@ -105,7 +111,7 @@ export default function RentChart() {
         </select>
       </div>
       <div className="w-full relative flex-1" style={{ height: '260px', minHeight: '260px' }}>
-        <Bar data={chartData} options={options} />
+        <Line data={chartData} options={options} />
       </div>
     </div>
   );

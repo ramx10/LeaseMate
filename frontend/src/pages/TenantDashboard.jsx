@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
 import StatsCard from "../components/StatsCard";
+import TenantSpendingTrend from "../components/TenantSpendingTrend";
 import { useAuth } from "../context/AuthContext";
 
 export default function TenantDashboard() {
@@ -161,6 +162,15 @@ export default function TenantDashboard() {
               <p className="text-gray-500 text-sm">No shared expenses recorded recently.</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Expense Charts Section */}
+      <div className="mt-6">
+        <div
+          className="bg-white rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] cursor-default"
+        >
+          <TenantSpendingTrend />
         </div>
       </div>
 

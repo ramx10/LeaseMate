@@ -62,3 +62,35 @@ exports.getTenantDashboardData = async (req, res) => {
     res.status(500).json("Error fetching tenant dashboard data");
   }
 };
+
+/* TENANT EXPENSE ANALYTICS — monthly breakdown */
+exports.getTenantExpenseAnalytics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const tenantQuery = await pool.query(
+      "SELECT id FROM tenants WHERE user_id = $1",
+      [userId]
+    );
+
+    if (tenantQuery.rows.length === 0) {
+      return res.status(404).json("Tenant not found");
+    }
+
+    const tenantId = tenantQuery.rows[0].id;
+
+    // Get all ledger entries for this tenant, ordered by entry
+    const expenseData = await pool.query(
+      `SELECT month, rent, electricity, total, paid
+       FROM ledger
+       WHERE tenant_id = $1
+       ORDER BY id ASC`,
+      [tenantId]
+    );
+
+    res.json(expenseData.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json("Error fetching tenant expense analytics");
+  }
+};
