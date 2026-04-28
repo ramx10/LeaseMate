@@ -1,0 +1,77 @@
+{
+  "users": [
+    {
+      "id": 14,
+      "name": "Ram",
+      "email": "Ram@gmail.com",
+      "password": "$2b$10$PU7IAtMCjo4oSlmHA4JRj.Eo8JBiNf7ON7iL86LPFh20RlIMjGRXi",
+      "role": "Owner",
+      "created_at": "2026-03-19T15:06:16.897Z",
+      "property_id": null
+    },
+    {
+      "id": 15,
+      "name": "user",
+      "email": "user@gmail.com",
+      "password": "$2b$10$2sJwkZNHVxbBFcgIimOUge75OtydMb8cUemkgL/t65Yk66yBYddtu",
+      "role": "Tenant",
+      "created_at": "2026-03-19T15:08:06.876Z",
+      "property_id": 12
+    },
+    {
+      "id": 16,
+      "name": "Test Owner",
+      "email": "owner@example.com",
+      "password": "$2b$10$XeIM2eMUNjXDh127s.QqH.TrFqiVP4BTEMTbS2injaktqu8Ucm1W2",
+      "role": "Owner",
+      "created_at": "2026-03-19T17:27:56.855Z",
+      "property_id": null
+    },
+    {
+      "id": 17,
+      "name": "temp",
+      "email": "temp@gmail.com",
+      "password": "$2b$10$ILWSbpLvDIqI/bNuTwC4uu4JJjOZvB3s37jWkaZcZsmjbeb1zPJwW",
+      "role": "Tenant",
+      "created_at": "2026-03-20T17:19:16.135Z",
+      "property_id": 12
+    }
+  ],
+  "properties": [
+    {
+      "id": 12,
+      "owner_id": 14,
+      "property_name": "Sunshine",
+      "address": "Mit corner",
+      "created_at": "2026-03-19T15:07:31.029Z",
+      "area": "loni kalbhor"
+    }
+  ],
+  "rooms": [
+    {
+      "id": 13,
+      "property_id": 12,
+      "room_number": "101",
+      "total_rent": 12000,
+      "max_tenants": 3
+    }
+  ],
+  "tenants": [
+    {
+      "id": 6,
+      "user_id": 15,
+      "room_id": 13,
+      "phone": "8605755100",
+      "deposit": 5000,
+      "join_date": "2026-03-18T18:30:00.000Z"
+    },
+    {
+      "id": 7,
+      "user_id": 17,
+      "room_id": 13,
+      "phone": "78945612300",
+      "deposit": 7500,
+      "join_date": "2026-03-19T18:30:00.000Z"
+    }
+  ]
+}

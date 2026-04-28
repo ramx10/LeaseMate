@@ -18,6 +18,26 @@ export const AuthProvider = ({ children }) => {
     }
     
     setLoading(false);
+
+    // Add a response interceptor to handle 401 Unauthorized globally
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+          setUser(null);
+          delete axios.defaults.headers.common["Authorization"];
+          window.location.href = "/login"; // Force redirect to login
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   const login = (userData, token) => {

@@ -221,13 +221,17 @@ export default function Register() {
                   onBlur={() => setTimeout(() => setShowAreaDropdown(false), 200)}
                 />
                 {showAreaDropdown && areas.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={dropdownStyle}>
+                  <div
+                    className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto"
+                    style={dropdownStyle}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
                     {areas.map((a) => (
                       <button
                         key={a}
                         type="button"
                         className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-indigo-500/30 transition-colors capitalize"
-                        onMouseDown={() => selectArea(a)}
+                        onClick={() => selectArea(a)}
                       >
                         📍 {a}
                       </button>
@@ -263,13 +267,17 @@ export default function Register() {
                     onBlur={() => setTimeout(() => setShowBuildingDropdown(false), 200)}
                   />
                   {showBuildingDropdown && properties.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={dropdownStyle}>
+                    <div
+                      className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto"
+                      style={dropdownStyle}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
                       {properties.map((p) => (
                         <button
                           key={p.id}
                           type="button"
                           className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-indigo-500/30 transition-colors"
-                          onMouseDown={() => selectBuilding(p)}
+                          onClick={() => selectBuilding(p)}
                         >
                           🏢 {p.property_name}
                         </button>

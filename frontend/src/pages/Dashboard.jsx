@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [tenants, setTenants] = useState([]);
   const [ledger, setLedger] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -35,6 +36,7 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.log("Error loading dashboard data:", err);
+        setErrorMsg(err.response ? JSON.stringify(err.response.data) : err.message);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -113,6 +115,12 @@ export default function Dashboard() {
 
   return (
     <MainLayout title="Dashboard">
+      {errorMsg && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {errorMsg}</span>
+        </div>
+      )}
       {/* Welcome Banner */}
       <div
         className="rounded-2xl p-6 lg:p-8 mb-8 text-white relative overflow-hidden animate-fade-in-up transition-all duration-500 hover:shadow-[0_20px_50px_rgba(99,102,241,0.3)] group cursor-default"
@@ -265,23 +273,64 @@ export default function Dashboard() {
               </div>
 
               {/* Room cards grid */}
-              {property.rooms && property.rooms.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pl-11">
-                  {property.rooms.map((room) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pl-11">
+                {property.rooms && property.rooms.length > 0 ? (
+                  property.rooms.map((room) => (
                     <RoomCard
                       key={room.id}
                       room={room}
                       onMarkPayment={handleMarkPayment}
                     />
-                  ))}
-                </div>
-              ) : (
-                <div className="pl-11">
-                  <div className="bg-slate-50 rounded-xl p-4 text-center border border-dashed border-slate-200">
-                    <p className="text-xs text-slate-400 font-medium">No rooms added yet</p>
+                  ))
+                ) : null}
+
+                {/* Quick Insights Card */}
+                <div className="flex flex-col justify-center p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 border border-slate-100 shadow-[var(--shadow-sm)] hover:shadow-md transition-shadow">
+                  <h4 className="text-slate-700 text-sm font-bold mb-4 flex items-center gap-2">
+                    <span className="text-indigo-500">📊</span> Quick Insights
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-500">Total Capacity</span>
+                      <span className="font-semibold text-slate-700">
+                        {property.rooms?.reduce((acc, r) => acc + (r.max_tenants || 0), 0) || 0} Beds
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-500">Current Tenants</span>
+                      <span className="font-semibold text-slate-700">
+                        {property.rooms?.reduce((acc, r) => acc + (r.tenants?.length || 0), 0) || 0} Residents
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
+                      {(() => {
+                        const capacity = property.rooms?.reduce((acc, r) => acc + (r.max_tenants || 0), 0) || 0;
+                        const current = property.rooms?.reduce((acc, r) => acc + (r.tenants?.length || 0), 0) || 0;
+                        const pct = capacity > 0 ? (current / capacity) * 100 : 0;
+                        return (
+                          <div className={`h-1.5 rounded-full ${pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${pct}%` }}></div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
-              )}
+
+                {/* Add Room Placeholder */}
+                <div
+                  onClick={() => window.location.href = '/rooms'}
+                  className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-slate-400 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 transition-all cursor-pointer group"
+                  style={{ minHeight: "160px" }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-3 shadow-[var(--shadow-sm)] group-hover:scale-110 transition-transform">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </div>
+                  <p className="font-medium text-sm text-slate-600 group-hover:text-indigo-700">Add New Room</p>
+                  <p className="text-[11px] opacity-70 mt-1">Expand {property.name}</p>
+                </div>
+              </div>
             </div>
           ))
         )}
