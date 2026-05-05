@@ -23,7 +23,7 @@ export default function RentChart() {
     let isMounted = true;
     const fetchChart = () => {
       axios
-        .get("http://localhost:5000/api/dashboard/rent-analytics")
+        .get("/api/dashboard/rent-analytics")
         .then((res) => {
           if (isMounted) setRawData(res.data);
         })

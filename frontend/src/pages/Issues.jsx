@@ -12,7 +12,7 @@ export default function Issues() {
 
   const fetchIssues = () => {
     axios
-      .get("http://localhost:5000/api/issues")
+      .get("/api/issues")
       .then((res) => setIssues(res.data))
       .catch((err) => console.log(err));
   };
@@ -26,7 +26,7 @@ export default function Issues() {
     if (!description.trim()) return;
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/issues/report", {
+      await axios.post("/api/issues/report", {
         category,
         description,
       });
@@ -42,7 +42,7 @@ export default function Issues() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/issues/${id}`, { status: newStatus });
+      await axios.put(`/api/issues/${id}`, { status: newStatus });
       fetchIssues();
     } catch (error) {
       console.error(error);

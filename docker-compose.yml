@@ -1,21 +1,29 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15-alpine
+    container_name: leasemate-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "1234"
       POSTGRES_DB: leasemate_db
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: .
-    ports:
-      - "5000:5000"
+    container_name: leasemate-backend
+    expose:
+      - "5000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       PGUSER: postgres
       PGPASSWORD: "1234"
@@ -23,15 +31,13 @@ services:
       PGDATABASE: leasemate_db
       PGPORT: 5432
       JWT_SECRET: supersecretkey
+    restart: on-failure
 
   frontend:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
+    build: ./frontend
+    container_name: leasemate-frontend
     ports:
-      - "5173:5173"
-    command: sh -c "npm install && npm run dev -- --host"
+      - "8090:5173"
     depends_on:
       - backend
 

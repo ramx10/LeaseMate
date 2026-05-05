@@ -15,7 +15,7 @@ export default function Settings() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/users/me")
+      .get("/api/users/me")
       .then((res) => {
         setProfile(res.data);
         setLoadingProfile(false);

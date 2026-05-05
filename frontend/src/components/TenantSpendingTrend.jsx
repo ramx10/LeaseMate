@@ -20,7 +20,7 @@ export default function TenantSpendingTrend() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tenant-dashboard/expense-analytics")
+      .get("/api/tenant-dashboard/expense-analytics")
       .then((res) => setRawData(res.data))
       .catch((err) => console.log(err));
   }, []);

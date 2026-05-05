@@ -14,21 +14,21 @@ export default function Tenants() {
 
   const fetchTenants = () => {
     axios
-      .get("http://localhost:5000/api/tenants")
+      .get("/api/tenants")
       .then((res) => setTenants(res.data))
       .catch((err) => console.log(err));
   };
 
   const fetchRooms = () => {
     axios
-      .get("http://localhost:5000/api/rooms")
+      .get("/api/rooms")
       .then((res) => setRooms(res.data))
       .catch((err) => console.log(err));
   };
 
   const fetchUnassignedUsers = () => {
     axios
-      .get("http://localhost:5000/api/users/tenants/unassigned")
+      .get("/api/users/tenants/unassigned")
       .then((res) => setUnassignedUsers(res.data))
       .catch((err) => console.log(err));
   };
@@ -46,7 +46,7 @@ export default function Tenants() {
     }
     
     try {
-      await axios.post("http://localhost:5000/api/tenants/add", {
+      await axios.post("/api/tenants/add", {
         user_id: userId,
         room_id: roomId,
         phone,
@@ -66,7 +66,7 @@ export default function Tenants() {
 
   const deleteTenant = async (id) => {
     if (!window.confirm("Delete this tenant? Their ledger records will also be removed.")) return;
-    await axios.delete(`http://localhost:5000/api/tenants/${id}`);
+    await axios.delete(`/api/tenants/${id}`);
     fetchTenants();
     fetchUnassignedUsers();
   };

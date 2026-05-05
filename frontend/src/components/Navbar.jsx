@@ -14,7 +14,7 @@ export default function Navbar({ title = "Dashboard" }) {
     let isMounted = true;
     const fetchNotifications = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/notifications/rent-due");
+        const res = await axios.get("/api/notifications/rent-due");
         if (isMounted) setNotifications(res.data);
       } catch (err) {
         console.log("Error fetching notifications:", err);
@@ -33,7 +33,7 @@ export default function Navbar({ title = "Dashboard" }) {
   const markAsRead = async (id, e) => {
     e.stopPropagation();
     try {
-      await axios.put(`http://localhost:5000/api/notifications/mark-read/${id}`);
+      await axios.put(`/api/notifications/mark-read/${id}`);
       setNotifications(notifications.filter(n => n.id !== id));
     } catch (err) {
       console.error("Error marking as read:", err);
@@ -44,7 +44,7 @@ export default function Navbar({ title = "Dashboard" }) {
     setShowNotifications(false);
     // Mark as read when clicked
     try {
-      await axios.put(`http://localhost:5000/api/notifications/mark-read/${notif.id}`);
+      await axios.put(`/api/notifications/mark-read/${notif.id}`);
       setNotifications(notifications.filter(n => n.id !== notif.id));
     } catch (err) { console.log(err); }
 
@@ -136,7 +136,7 @@ export default function Navbar({ title = "Dashboard" }) {
                 {notifications.length > 0 && (
                   <button 
                     onClick={async () => {
-                      await axios.post("http://localhost:5000/api/notifications/clear-all");
+                      await axios.post("/api/notifications/clear-all");
                       setNotifications([]);
                     }}
                     className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold uppercase tracking-wider"

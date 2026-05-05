@@ -14,14 +14,14 @@ export default function Rooms() {
 
   const fetchRooms = () => {
     axios
-      .get("http://localhost:5000/api/rooms")
+      .get("/api/rooms")
       .then((res) => setRooms(res.data))
       .catch((err) => console.log(err));
   };
 
   const fetchProperties = () => {
     axios
-      .get("http://localhost:5000/api/properties")
+      .get("/api/properties")
       .then((res) => setProperties(res.data))
       .catch((err) => console.log(err));
   };
@@ -34,7 +34,7 @@ export default function Rooms() {
   const addRoom = async () => {
     if (!propertyId || !roomNumber || !totalRent || !maxTenants) return;
     // BUG FIX: send correct field names matching the backend controller
-    await axios.post("http://localhost:5000/api/rooms/add", {
+    await axios.post("/api/rooms/add", {
       property_id: propertyId,
       room_number: roomNumber,
       total_rent: totalRent,
@@ -48,7 +48,7 @@ export default function Rooms() {
 
   const deleteRoom = async (id) => {
     if (!window.confirm("Delete this room? All tenants in this room will also be removed.")) return;
-    await axios.delete(`http://localhost:5000/api/rooms/${id}`);
+    await axios.delete(`/api/rooms/${id}`);
     fetchRooms();
   };
 

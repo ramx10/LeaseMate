@@ -12,7 +12,7 @@ export default function PaymentChart() {
     let isMounted = true;
     const fetchChart = () => {
       axios
-        .get("http://localhost:5000/api/dashboard/payment-analytics")
+        .get("/api/dashboard/payment-analytics")
         .then((res) => {
           if (!isMounted) return;
           const paid = res.data.find((d) => d.paid === true)?.count || 0;

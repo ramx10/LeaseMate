@@ -21,11 +21,11 @@ export default function Dashboard() {
       try {
         if (!isBackground) setLoading(true);
         const [statsRes, propsRes, roomsRes, tenantsRes, ledgerRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/dashboard"),
-          axios.get("http://localhost:5000/api/properties"),
-          axios.get("http://localhost:5000/api/rooms"),
-          axios.get("http://localhost:5000/api/tenants"),
-          axios.get("http://localhost:5000/api/ledger"),
+          axios.get("/api/dashboard"),
+          axios.get("/api/properties"),
+          axios.get("/api/rooms"),
+          axios.get("/api/tenants"),
+          axios.get("/api/ledger"),
         ]);
         if (isMounted) {
           setStats(statsRes.data);

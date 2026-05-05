@@ -24,8 +24,8 @@ export default function Register() {
     if (role !== "Tenant") return;
     const timer = setTimeout(() => {
       const url = areaSearch
-        ? `http://localhost:5000/api/auth/areas?q=${encodeURIComponent(areaSearch)}`
-        : "http://localhost:5000/api/auth/areas";
+        ? `/api/auth/areas?q=${encodeURIComponent(areaSearch)}`
+        : "/api/auth/areas";
       axios.get(url)
         .then((res) => setAreas(res.data))
         .catch((err) => console.log(err));
@@ -40,7 +40,7 @@ export default function Register() {
       return;
     }
     const timer = setTimeout(() => {
-      let url = `http://localhost:5000/api/auth/properties?area=${encodeURIComponent(selectedArea)}`;
+      let url = `/api/auth/properties?area=${encodeURIComponent(selectedArea)}`;
       if (buildingSearch) {
         url += `&q=${encodeURIComponent(buildingSearch)}`;
       }
@@ -82,7 +82,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await axios.post("/api/auth/register", {
         name,
         email,
         password,

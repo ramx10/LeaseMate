@@ -18,7 +18,7 @@ export default function TenantDashboard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tenant-dashboard")
+      .get("/api/tenant-dashboard")
       .then((res) => {
         setData(res.data);
         setLoading(false);

@@ -12,7 +12,7 @@ export default function Properties() {
 
   const fetchProperties = () => {
     axios
-      .get("http://localhost:5000/api/properties")
+      .get("/api/properties")
       .then((res) => {
         setProperties(res.data);
         setFiltered(res.data);
@@ -36,7 +36,7 @@ export default function Properties() {
       alert("Please fill all fields including area");
       return;
     }
-    await axios.post("http://localhost:5000/api/properties/add", {
+    await axios.post("/api/properties/add", {
       property_name: name,
       address,
       area,
@@ -49,7 +49,7 @@ export default function Properties() {
 
   const deleteProperty = async (id) => {
     if (!window.confirm("Delete this property?")) return;
-    await axios.delete(`http://localhost:5000/api/properties/${id}`);
+    await axios.delete(`/api/properties/${id}`);
     fetchProperties();
   };
 

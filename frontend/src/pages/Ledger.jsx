@@ -19,21 +19,21 @@ export default function Ledger() {
 
   const fetchLedger = () => {
     axios
-      .get("http://localhost:5000/api/ledger")
+      .get("/api/ledger")
       .then((res) => setLedger(res.data))
       .catch((err) => console.log(err));
   };
 
   const fetchTenants = () => {
     axios
-      .get("http://localhost:5000/api/tenants")
+      .get("/api/tenants")
       .then((res) => setTenants(res.data))
       .catch((err) => console.log(err));
   };
 
   const fetchRooms = () => {
     axios
-      .get("http://localhost:5000/api/rooms")
+      .get("/api/rooms")
       .then((res) => setRooms(res.data))
       .catch((err) => console.log(err));
   };
@@ -51,7 +51,7 @@ export default function Ledger() {
     try {
       const [year, mon] = generateMonth.split("-");
       const formattedMonth = new Date(year, mon - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
-      const res = await axios.post("http://localhost:5000/api/ledger/generate", {
+      const res = await axios.post("/api/ledger/generate", {
         month: formattedMonth,
         electricity: genElectricity,
         room_id: genRoomId,
@@ -71,7 +71,7 @@ export default function Ledger() {
       // Format month from '2026-03' to 'March 2026'
       const [year, mon] = month.split("-");
       const formattedMonth = new Date(year, mon - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
-      await axios.post("http://localhost:5000/api/ledger/add", {
+      await axios.post("/api/ledger/add", {
         tenant_id: tenantId,
         month: formattedMonth,
         electricity: units,
@@ -85,7 +85,7 @@ export default function Ledger() {
   };
 
   const markPaid = async (id) => {
-    await axios.put(`http://localhost:5000/api/ledger/paid/${id}`);
+    await axios.put(`/api/ledger/paid/${id}`);
     fetchLedger();
   };
 
