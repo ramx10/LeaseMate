@@ -196,17 +196,17 @@ flowchart TD
     A([Open app]) --> B{Token in localStorage?}
     B -- yes --> C[Restore session, set axios auth header]
     C --> D{role?}
-    D -- Owner --> E[/ → Dashboard]
-    D -- Tenant --> F[/tenant-dashboard]
+    D -- Owner --> E["/ (Dashboard)"]
+    D -- Tenant --> F["/tenant-dashboard"]
 
     B -- no --> G[Login page]
-    G --> H[POST /api/auth/login]
+    G --> H["POST /api/auth/login"]
     H --> I{valid creds?}
     I -- no --> J[show error]
     I -- yes --> K[JWT + user returned, stored]
     K --> D
 
-    G -.new user.-> M[/register]
+    G -.new user.-> M["/register"]
     M --> N{role?}
     N -- Owner --> O[fill details, submit]
     N -- Tenant --> P[pick area → pick building → fill details, submit]
